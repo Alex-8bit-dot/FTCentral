@@ -516,7 +516,44 @@ function sendMsg() {
 // sets Access-Control-Allow-Origin: * for hosted origins.
 // Running from file:// is blocked by CORS -- host on Netlify Drop or any server.
 
-const SEASON = 2025; // REBASE (2025-2026)
+const SEASON = 2025; // DECODE (2025-2026)
+
+// Expand common FTC Scout school name abbreviations to full names
+function expandSchoolName(name) {
+  if (!name) return null;
+  return name
+    .replace(/\bSch\b/gi, 'School')
+    .replace(/\bHs\b/gi, 'High School')
+    .replace(/\bMs\b/gi, 'Middle School')
+    .replace(/\bElem\b/gi, 'Elementary')
+    .replace(/\bAcad\b/gi, 'Academy')
+    .replace(/\bTech\b/gi, 'Technology')
+    .replace(/\bMath\b/gi, 'Mathematics')
+    .replace(/\bSci\b/gi, 'Science')
+    .replace(/\bEngg?\b/gi, 'Engineering')
+    .replace(/\bIntl\b/gi, 'International')
+    .replace(/\bAm\b/gi, 'American')
+    .replace(/\bFr\b/gi, 'French')
+    .replace(/\bNy\b/gi, 'New York')
+    .replace(/\bSec\b/gi, 'Secondary')
+    .replace(/\bPrep\b/gi, 'Preparatory')
+    .replace(/\bChrist\b/gi, 'Christian')
+    .replace(/\bSt\b/gi, 'Saint')
+    .replace(/\bMt\b/gi, 'Mount')
+    .replace(/\bUniv\b/gi, 'University')
+    .replace(/\bInst\b/gi, 'Institute')
+    .replace(/\bCtr\b/gi, 'Center')
+    .replace(/-/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Team ratings storage (persists in localStorage)
+const teamRatings = JSON.parse(localStorage.getItem('ftcRatings') || '{}');
+function saveRating(teamNum, val) {
+  teamRatings[teamNum] = val;
+  localStorage.setItem('ftcRatings', JSON.stringify(teamRatings));
+}
 
 async function scoutTeam(number) {
   // Query 1: basic team info -- only fields confirmed valid on Team type
@@ -606,12 +643,12 @@ async function scoutTeam(number) {
   return {
     number,
     name:       info.name,
-    school:     info.schoolName || null,
+    school:     expandSchoolName(info.schoolName) || null,
     location:   info.location
                   ? [info.location.city, info.location.state, info.location.country].filter(Boolean).join(', ')
                   : null,
     rookieYear: info.rookieYear || null,
-    season:     'REBASE (2025-2026)',
+    season:     'DECODE (2025-2026)',
     awards:     [],
     recentEvents: [],
     stats: qs ? {
@@ -657,6 +694,25 @@ function renderScouting() {
     <div id="scout-result"></div>
     <div id="scout-notes-section" style="display:none;margin-top:16px">
       <div class="card">
+        <!-- Team Rating -->
+        <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+          <div class="lbl" style="margin-bottom:12px" id="scout-rating-lbl">Team Rating</div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <input type="range" id="team-rating" min="1" max="10" value="5"
+              oninput="updateRating(this.value)"
+              style="flex:1;height:6px;background:var(--bg3);border-radius:3px;border:none;padding:0;cursor:pointer;accent-color:var(--cyan)">
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <div id="rating-display" style="font-family:'Share Tech Mono',monospace;font-size:32px;color:var(--cyan);line-height:1;min-width:48px;text-align:center">5</div>
+              <div style="font-size:12px;color:var(--muted)">/10</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--dim)">
+            <span>Weak</span><span>Average</span><span>Elite</span>
+          </div>
+          <div id="rating-label" style="margin-top:8px;font-size:13px;color:var(--muted);text-align:center"></div>
+          <button class="btn btn-cyan btn-sm" onclick="saveRatingBtn()" style="margin-top:10px">Save Rating</button>
+          <span id="rating-saved" style="color:var(--green);font-size:13px;margin-left:10px;display:none">&#10003; Saved!</span>
+        </div>
         <div class="lbl" style="margin-bottom:10px" id="scout-notes-lbl">Scouting Notes</div>
         <textarea id="scout-notes-input" rows="4" placeholder="Add your observations, strategy thoughts, alliance considerations..." style="resize:vertical"></textarea>
         <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
@@ -707,12 +763,17 @@ async function doScout() {
     // Notes
     document.getElementById('scout-notes-section').style.display='block';
     document.getElementById('scout-notes-lbl').textContent=`Scouting Notes -- Team #${num}`;
+    document.getElementById('scout-rating-lbl').textContent=`Team Rating -- Team #${num}`;
     const saved = scoutNotes[num];
     if (saved) {
       document.getElementById('scout-notes-input').value = saved;
       document.getElementById('note-text').textContent = saved;
       document.getElementById('note-display').style.display='block';
     }
+    // Load saved rating
+    const savedRating = teamRatings[num] || 5;
+    const slider = document.getElementById('team-rating');
+    if (slider) { slider.value = savedRating; updateRating(savedRating); }
   } catch(e) {
     clearInterval(ticker);
     document.getElementById('scout-loading').style.display='none';
@@ -756,8 +817,8 @@ function renderScoutResult(data) {
   ` : `
     <div style="background:var(--bg2);border-radius:8px;padding:20px;text-align:center">
       <div style="font-size:28px;margin-bottom:10px">🔭</div>
-      <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:6px">No stats yet this season</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">This team may not have competed in INTO THE DEEP yet.</div>
+      <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:6px">No stats yet for DECODE</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">This team has not competed in the 2025-2026 DECODE season yet. Click below for previous seasons.</div>
       <a href="https://ftcscout.org/teams/${data.number}" target="_blank" class="btn btn-cyan btn-sm" style="text-decoration:none">View on FTC Scout &rarr;</a>
     </div>`;
 
@@ -823,6 +884,38 @@ function saveNote() {
   document.getElementById('note-text').textContent = val.trim();
   document.getElementById('note-display').style.display='block';
   const saved = document.getElementById('note-saved');
+  saved.style.display='inline';
+  setTimeout(()=>saved.style.display='none', 2000);
+}
+
+const RATING_LABELS = {
+  1:'Very weak -- avoid in alliance',
+  2:'Below average',
+  3:'Developing team',
+  4:'Slightly below average',
+  5:'Average competitor',
+  6:'Solid team',
+  7:'Strong competitor',
+  8:'Top-tier team',
+  9:'Elite -- prioritize in alliance',
+  10:'World-class team'
+};
+
+function updateRating(val) {
+  const display = document.getElementById('rating-display');
+  const label   = document.getElementById('rating-label');
+  if (display) display.textContent = val;
+  if (label)   label.textContent   = RATING_LABELS[val] || '';
+  // Color based on rating
+  const colors = {1:'#FF6B6B',2:'#FF6B6B',3:'#FF9F43',4:'#FF9F43',5:'#FFB930',6:'#FFB930',7:'#00C896',8:'#00C896',9:'#00E5FF',10:'#00E5FF'};
+  if (display) display.style.color = colors[val] || 'var(--cyan)';
+}
+
+function saveRatingBtn() {
+  const slider = document.getElementById('team-rating');
+  if (!slider || !scoutNum) return;
+  saveRating(scoutNum, parseInt(slider.value));
+  const saved = document.getElementById('rating-saved');
   saved.style.display='inline';
   setTimeout(()=>saved.style.display='none', 2000);
 }
