@@ -1,1074 +1,1562 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FTCentral</title>
-<!-- 
-  IMPORTANT: This file must be HOSTED to work -- opening from file:// blocks CORS.
-  Free hosting in 60 seconds: go to https://netlify.com/drop and drag this file onto the page.
-  Or use VS Code Live Server extension, or any local HTTP server.
--->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FTCentral | FTC scouting, events and team tools</title>
+<meta name="description" content="Look up any FTC team's record, OPR and awards, find upcoming BIOBUZZ events, and keep scouting notes for alliance selection. Built by the MantaBots, FTC Team 27318.">
+<meta name="theme-color" content="#0A0C14">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FTCentral">
+<meta property="og:title" content="FTCentral: scouting, events and team tools for FTC">
+<meta property="og:description" content="Live team stats from FTC Scout, every upcoming BIOBUZZ event, and a scouting list that stays on your device. Built by FTC Team 27318, the MantaBots.">
+<meta property="og:url" content="https://alex-8bit-dot.github.io/FTCentral/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 3 57 17.5v29L32 61 7 46.5v-29z' fill='%2300E5FF'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-weight='700' font-size='28' text-anchor='middle' fill='%230A0C14'%3EF%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.ftcscout.org" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<!--
+  FTCentral, by the MantaBots (FTC Team 27318).
+  Team, match and event data comes from the FTC Scout GraphQL API (api.ftcscout.org).
+  Everything a visitor types (profile, ratings, notes, message drafts) is stored only in their own browser (localStorage).
+  This page must be served from the web (GitHub Pages). Opened as a local file, FTC Scout will refuse the requests.
+-->
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg0:#0A0C14;--bg1:#0F1220;--bg2:#141828;--bg3:#1B2035;
-  --cyan:#00E5FF;--cyan-dim:#00B8CC;
-  --orange:#FF6B35;
-  --text:#E8EAF0;--muted:#7A82A0;--dim:#4A5068;
-  --border:rgba(0,229,255,0.12);--border-hi:rgba(0,229,255,0.30);
-  --green:#00C896;--red:#FF6B6B;
+  --bg0:#0A0C14;--bg1:#10141F;--bg2:#161B2A;--bg3:#1F2538;
+  --line:rgba(143,152,180,.16);--line2:rgba(143,152,180,.30);
+  --cyan:#00E5FF;--cyan-soft:rgba(0,229,255,.10);
+  --honey:#F4B740;--honey-soft:rgba(244,183,64,.12);
+  --green:#2FD68B;--red:#FF6B6B;
+  --text:#E8EAF0;--muted:#98A0BB;--dim:#666F8E;
+  --sans:'Exo 2',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'Share Tech Mono',ui-monospace,Menlo,Consolas,monospace;
+  --r:12px;--r-sm:8px;
 }
-body{background:var(--bg0);color:var(--text);font-family:'Exo 2',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px}
-a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}
-input,textarea,select{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Exo 2',sans-serif;font-size:14px;border-radius:6px;padding:10px 14px;width:100%;outline:none;transition:border .2s}
-input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,229,255,.08)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;overflow-anchor:none}
+body{background:var(--bg0);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+main{flex:1;outline:none}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--text);background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r-sm);padding:10px 12px;width:100%;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
 select option{background:var(--bg2)}
-.grid-bg{background-image:linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px);background-size:40px 40px}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-.fade-in{animation:fadeIn .35s ease both}
-.btn{display:inline-flex;align-items:center;gap:8px;font-family:'Exo 2',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:10px 22px;border:none;border-radius:6px;cursor:pointer;transition:opacity .2s,transform .1s;text-decoration:none;white-space:nowrap}
-.btn:hover{opacity:.88;text-decoration:none}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-cyan{background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));color:var(--bg0)}
-.btn-orange{background:linear-gradient(135deg,var(--orange),#CC5528);color:#fff}
-.btn-ghost{background:transparent;color:var(--cyan);border:1px solid var(--border);font-weight:600}
-.btn-ghost:hover{border-color:var(--cyan);background:rgba(0,229,255,.06)}
-.btn-sm{padding:7px 14px;font-size:12px}
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:24px;transition:border-color .2s}
-.card:hover{border-color:var(--border-hi)}
-.nav-btn{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:6px 12px;border-radius:6px;transition:color .2s,background .2s;border:none;background:none;font-family:'Exo 2',sans-serif}
-.nav-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}.nav-btn.active{color:var(--cyan)}
-.badge{display:inline-flex;align-items:center;background:rgba(0,229,255,.1);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid rgba(0,229,255,.2)}
-.lbl{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;margin-bottom:8px}
-.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
-.shimmer{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;height:14px;margin-bottom:12px}
-.tab-bar{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px}
-.tab{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:none;border:none;padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s,border-color .2s}
-.tab:hover{color:var(--text)}.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
-.pbar-wrap{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;margin-top:5px}
-.pbar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cyan),var(--cyan-dim));transition:width .6s ease}
-.rlink{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:10px;transition:border-color .2s,background .2s;text-decoration:none;color:inherit}
-.rlink:hover{border-color:var(--cyan);background:rgba(0,229,255,.04);text-decoration:none}
-.rlink-icon{width:36px;height:36px;border-radius:8px;background:rgba(0,229,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.bubble{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:14px}
-.bubble.mine{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.25);margin-left:48px}
-.note-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--muted);white-space:pre-wrap;margin-top:12px}
-.page{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
-.page-title{font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--text);margin-bottom:4px}
-.page-sub{color:var(--muted);font-size:14px;margin-bottom:32px}
-.ev-card{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:8px;padding:16px 20px;margin-bottom:12px}
-.chip{display:inline-flex;align-items:center;gap:8px;background:rgba(0,229,255,.08);border:1px solid var(--border);border-radius:20px;padding:5px 14px 5px 8px;font-size:13px;color:var(--text)}
-.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));color:var(--bg0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;cursor:pointer;transition:background .15s;font-size:14px;color:var(--muted);border:none;background:none;width:100%;text-align:left;font-family:'Exo 2',sans-serif}
-.sidebar-item:hover{background:rgba(0,229,255,.06);color:var(--text)}.sidebar-item.active{background:rgba(0,229,255,.1);color:var(--cyan)}
-nav{background:var(--bg1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;height:58px;gap:8px}
-.logo{cursor:pointer;display:flex;align-items:center;gap:10px;margin-right:16px}
-.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-weight:700;font-size:16px;color:var(--bg0)}
-.logo-text{font-family:'Share Tech Mono',monospace;font-size:18px;color:var(--text)}
-.logo-text span{color:var(--cyan)}
-footer{border-top:1px solid var(--border);background:var(--bg1);padding:24px;text-align:center}
+textarea{resize:vertical}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-9999px;top:8px;background:var(--cyan);color:var(--bg0);padding:8px 12px;border-radius:6px;z-index:200;font-weight:700}
+.skip:focus{left:8px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}.dim{color:var(--dim)}.small{font-size:13px}
+.ok{color:var(--green)}.bad{color:var(--red)}
 [hidden]{display:none!important}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.full-col{grid-column:1/-1}
-.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
-.stat-box{background:var(--bg2);border-radius:8px;padding:10px 4px;text-align:center}
-.stat-num{font-family:'Share Tech Mono',monospace;font-size:22px;line-height:1}
-.stat-lbl{font-size:10px;color:var(--dim);margin-top:4px;letter-spacing:.06em}
-.info-block{background:var(--bg2);border-radius:8px;overflow:hidden;margin-bottom:14px}
-.info-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border)}
-.info-row:last-child{border-bottom:none}
-.info-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
-.info-lbl{font-size:12px;color:var(--muted);width:88px;flex-shrink:0}
-.info-val{font-size:13px;color:var(--text);font-weight:500}
-.award-tag{background:rgba(255,107,53,.1);color:var(--orange);border:1px solid rgba(255,107,53,.22);border-radius:5px;font-size:11px;padding:3px 9px;margin:2px}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(10,12,20,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:18px;min-height:60px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);font-weight:700;font-size:19px;white-space:nowrap}
+.brand:hover{text-decoration:none}
+.brand svg{width:30px;height:30px;flex-shrink:0}
+.brand b{color:var(--cyan)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{color:var(--muted);font-weight:600;font-size:14px;padding:8px 12px;border-radius:8px;white-space:nowrap}
+nav.tabs a:hover{color:var(--text);background:rgba(255,255,255,.04);text-decoration:none}
+nav.tabs a[aria-current="page"]{color:var(--cyan);background:var(--cyan-soft)}
+.me{display:flex;align-items:center;gap:8px;color:var(--text);font-size:13px;font-weight:600;white-space:nowrap;padding:4px 12px 4px 4px;border:1px solid var(--line2);border-radius:999px}
+.me:hover{text-decoration:none;border-color:var(--cyan)}
+.me .dot{width:26px;height:26px;border-radius:50%;background:var(--cyan);color:var(--bg0);display:grid;place-items:center;font-weight:700;font-size:12px}
+.me.plain{padding:6px 12px;color:var(--cyan)}
+
+/* page scaffolding */
+.page{padding:36px 0 72px}
+.page-head{margin-bottom:24px}
+.page-head h1{font-size:30px;line-height:1.2;font-weight:700;letter-spacing:-.01em}
+.page-head p{color:var(--muted);margin-top:6px;max-width:70ch}
+h2{font-size:18px;font-weight:700;line-height:1.3}
+h3{font-size:15px;font-weight:600;line-height:1.35}
+.card{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);padding:22px;min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.grid-main{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+.full{grid-column:1/-1}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* buttons, tags, notices */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:14px;padding:10px 18px;border-radius:var(--r-sm);white-space:nowrap;transition:filter .15s,border-color .15s,color .15s}
+.btn:hover{text-decoration:none}
+.btn-primary{background:var(--cyan);color:var(--bg0)}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-ghost{border:1px solid var(--line2);color:var(--text)}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-danger{border:1px solid rgba(255,107,107,.45);color:var(--red)}
+.btn-sm{padding:7px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.ext::after{content:"";display:inline-block;width:.62em;height:.62em;margin-left:.15em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4 2h6v6M10 2 2 10' fill='none' stroke='black' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat center/contain;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4 2h6v6M10 2 2 10' fill='none' stroke='black' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat center/contain}
+.tag{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--bg3);color:var(--muted);white-space:nowrap}
+.tag-honey{background:var(--honey-soft);color:var(--honey)}
+.tag-cyan{background:var(--cyan-soft);color:var(--cyan)}
+.notice{background:var(--honey-soft);border:1px solid rgba(244,183,64,.35);border-radius:var(--r-sm);padding:12px 14px;font-size:14px;line-height:1.55}
+.notice.info{background:var(--cyan-soft);border-color:rgba(0,229,255,.28)}
+.notice.error{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.35)}
+.notice b{font-weight:700}
+.empty{text-align:center;padding:26px 12px;color:var(--muted)}
+.empty h3{color:var(--text);margin-bottom:6px}
+.skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;height:14px;margin-bottom:12px}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.loading{display:flex;align-items:center;gap:10px;color:var(--cyan);font-size:14px;margin-bottom:16px}
+.pulse{width:9px;height:9px;border-radius:50%;background:var(--cyan);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+/* honeycomb badge */
+.hex{--c:var(--cyan);position:relative;flex-shrink:0;width:78px;height:68px;display:grid;place-items:center;background:var(--c);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.hex::before{content:"";position:absolute;inset:2px;background:var(--bg2);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.hex span{position:relative;font-family:var(--mono);font-size:15px;color:var(--c)}
+.hex.honey{--c:var(--honey)}
+.hex.sm{width:48px;height:42px}
+.hex.sm span{font-size:11px}
+
+/* hero */
+.hero{border-bottom:1px solid var(--line);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='96' viewBox='0 0 56 96'%3E%3Cpath d='M28 0 56 16v32L28 64 0 48V16zm0 64v32' fill='none' stroke='%23F4B740' stroke-opacity='.08'/%3E%3C/svg%3E")}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:44px;align-items:center;padding-top:60px;padding-bottom:60px}
+.season-line{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--honey);margin-bottom:16px}
+.season-line svg{width:18px;height:18px}
+.hero h1{font-size:44px;line-height:1.1;font-weight:700;letter-spacing:-.02em;max-width:17ch}
+.hero .lead{color:var(--muted);font-size:17px;margin-top:16px;max-width:52ch}
+.lookup{margin-top:28px;display:flex;gap:10px;max-width:520px}
+.lookup input{font-family:var(--mono);font-size:21px;padding:13px 16px}
+.lookup .btn{padding:0 22px;font-size:15px}
+.try{margin-top:10px;font-size:13px;color:var(--dim)}
+.try button{color:var(--cyan);font-weight:600;padding:0 2px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field>span{font-size:13px;color:var(--muted)}
+.field small{font-size:12px;color:var(--dim)}
+.verify{font-size:13px;min-height:20px}
+.profile-facts{display:grid;grid-template-columns:90px 1fr;gap:6px 12px;font-size:14px;margin:12px 0 18px}
+.profile-facts dt{color:var(--muted)}
+
+/* scouting */
+.searchbar{display:flex;gap:10px;max-width:600px;position:relative}
+.searchbar input{font-size:16px}
+.suggest{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg1);border:1px solid var(--line2);border-radius:var(--r-sm);z-index:30;max-height:340px;overflow-y:auto;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.suggest button{display:flex;gap:12px;width:100%;padding:10px 12px;text-align:left;align-items:center;border-bottom:1px solid var(--line)}
+.suggest button:last-child{border-bottom:0}
+.suggest button:hover,.suggest button:focus-visible{background:var(--bg2)}
+.suggest .num{color:var(--cyan);min-width:52px}
+.season-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:22px 0 16px}
+.season-bar>span{font-size:13px;color:var(--muted);margin-right:4px}
+.chip{font-size:13px;font-weight:600;padding:6px 13px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.chip:hover{color:var(--text);border-color:var(--cyan);text-decoration:none}
+.chip[aria-current="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--bg0)}
+.chip.now::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--honey);margin-right:7px;vertical-align:1px}
+.profile-head{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.profile-head h2{font-size:24px;line-height:1.2}
+.facts{background:var(--bg2);border-radius:var(--r-sm);margin:0}
+.facts>div{display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px}
+.facts>div:last-child{border-bottom:0}
+.facts dt{color:var(--muted)}
+.facts dd{overflow-wrap:anywhere}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.sub{font-size:13px;font-weight:700;color:var(--muted);margin:18px 0 8px}
+.mini-ev{display:flex;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.mini-ev:last-child{border-bottom:0}
+.mini-ev .num{color:var(--honey);min-width:88px;font-size:13px}
+.wlt{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.wlt div{background:var(--bg2);border-radius:var(--r-sm);padding:12px 4px;text-align:center}
+.wlt b{display:block;font-family:var(--mono);font-size:26px;font-weight:400;line-height:1}
+.wlt span{font-size:12px;color:var(--muted)}
+.record-line{font-size:13px;color:var(--muted);margin:10px 0 4px}
+.bars{margin-top:16px;display:flex;flex-direction:column;gap:14px}
+.bar-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;flex-wrap:wrap}
+.bar-top .val{font-family:var(--mono);color:var(--cyan);font-size:17px}
+.bar-top .rank{font-size:12px;color:var(--muted)}
+.track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.fill{height:100%;background:var(--cyan);border-radius:3px}
+.avg{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.avg b{font-family:var(--mono);font-weight:400;color:var(--cyan);font-size:16px}
+.explain{font-size:12px;color:var(--dim);margin-top:12px}
+.ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ev{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--honey);border-radius:var(--r-sm);padding:12px 14px;min-width:0}
+.ev h3 a{color:var(--text)}
+.ev .meta{font-size:13px;color:var(--muted);margin-top:2px}
+.ev .res{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:8px}
+.ev .res b{font-family:var(--mono);font-weight:400;color:var(--cyan)}
+.awards{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.award{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--honey-soft);color:var(--honey)}
+.rate{display:flex;align-items:center;gap:16px}
+input[type=range]{padding:0;height:22px;accent-color:var(--cyan);border:0;background:transparent;flex:1}
+.rate-num{font-family:var(--mono);font-size:36px;line-height:1;min-width:48px;text-align:center}
+.rate-scale{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:2px}
+.rate-label{font-size:14px;color:var(--muted);margin-top:6px;min-height:22px}
+.note-saved{margin-top:12px;background:var(--bg2);border-radius:var(--r-sm);padding:12px 14px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--muted)}
+.slist{display:flex;flex-direction:column}
+.srow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.srow a{color:var(--text);font-weight:600}
+.srow .note{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-family:var(--mono);font-size:14px;padding:2px 10px;border-radius:999px;background:var(--bg3)}
+
+/* events */
+.filters{display:grid;grid-template-columns:1.25fr 1fr 1.25fr;gap:12px;align-items:end;margin-bottom:10px}
+.filters label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.filters select,.filters input{height:42px;line-height:1.2}
+.checkline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-bottom:18px}
+.checkline input{width:auto;accent-color:var(--cyan)}
+.count{font-size:14px;color:var(--muted);margin-bottom:6px}
+.month{font-size:14px;font-weight:700;color:var(--muted);margin:24px 0 10px}
+.erow{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 16px;background:var(--bg1);border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:8px}
+.edate{font-family:var(--mono);color:var(--honey);font-size:15px;line-height:1.25}
+.edate small{display:block;font-family:var(--sans);color:var(--dim);font-size:12px;margin-top:2px}
+.erow h3 a{color:var(--text)}
+.emeta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px}
+.elinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.dash-ev{display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.dash-ev:last-child{border-bottom:0}
+.dash-ev .edate{font-size:13px}
+.dash-ev a{color:var(--text);font-weight:600}
+
+/* messages */
+.chat{display:grid;grid-template-columns:290px minmax(0,1fr);gap:16px;margin-top:20px}
+.threads,.convo{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.threads form{padding:14px;border-bottom:1px solid var(--line)}
+.thread{display:flex;gap:10px;align-items:center;width:100%;padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);color:var(--text)}
+.thread:hover{background:var(--bg2);text-decoration:none}
+.thread[aria-current="true"]{background:var(--cyan-soft)}
+.thread .t{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thread .s{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.convo-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.convo-body{flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-height:260px;max-height:460px;overflow-y:auto}
+.draft{align-self:flex-end;max-width:85%;background:var(--cyan-soft);border:1px solid rgba(0,229,255,.25);border-radius:12px 12px 4px 12px;padding:10px 14px}
+.draft p{white-space:pre-wrap;overflow-wrap:anywhere}
+.draft .meta{display:flex;gap:12px;justify-content:flex-end;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
+.draft .meta button{color:var(--cyan);font-weight:600}
+.composer{display:flex;gap:10px;padding:12px;border-top:1px solid var(--line);align-items:flex-end}
+.composer textarea{min-height:46px;max-height:160px;resize:none}
+
+/* learning */
+.tabbar{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+.tabbar a{padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabbar a:hover{color:var(--text);text-decoration:none}
+.tabbar a[aria-current="true"]{color:var(--cyan);border-bottom-color:var(--cyan)}
+.res-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.resource{display:flex;gap:14px;align-items:flex-start;padding:16px;background:var(--bg1);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--text);min-width:0}
+.resource:hover{border-color:var(--cyan);text-decoration:none}
+.resource .icon{width:40px;height:40px;border-radius:10px;background:var(--bg3);display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.resource h3{color:var(--text)}
+.resource p{font-size:13px;color:var(--muted);margin-top:2px}
+.resource .domain{font-size:12px;color:var(--dim);margin-top:4px}
+
+/* footer */
+footer.site{border-top:1px solid var(--line);background:var(--bg1);padding:30px 0;color:var(--muted);font-size:13px}
+footer.site .wrap{display:grid;grid-template-columns:1.3fr 1fr;gap:28px}
+footer.site p+p{margin-top:8px}
+footer.site strong{color:var(--text)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:880px){
+  .hero .wrap,.grid2,.grid-main,footer.site .wrap,.res-list{grid-template-columns:1fr}
+  .hero .wrap{padding-top:40px;padding-bottom:40px;gap:32px}
+  .hero h1{font-size:34px}
+  .filters{grid-template-columns:1fr 1fr}
+  .filters label:last-child{grid-column:1/-1}
+  .chat{grid-template-columns:1fr}
+  .threads{max-height:320px}
+}
+@media (max-width:780px){
+  /* tabs get their own row so all five stay visible */
+  .topbar .wrap{flex-wrap:wrap;gap:6px 12px;padding-top:10px;padding-bottom:6px}
+  nav.tabs{order:3;flex-basis:100%;margin:0 -6px}
+  .me{margin-left:auto}
+}
+@media (max-width:560px){
+  nav.tabs{justify-content:space-between;gap:0}
+  nav.tabs a{font-size:clamp(12px,3.35vw,14px);padding:8px clamp(4px,1.5vw,12px)}
+  .page{padding:24px 0 56px}
+  .page-head h1{font-size:25px}
+  .hero h1{font-size:29px}
+  .lookup,.searchbar{flex-direction:column}
+  .lookup .btn,.searchbar .btn{padding:12px}
+  .card{padding:18px}
+  .filters{grid-template-columns:1fr}
+  .erow{grid-template-columns:80px minmax(0,1fr)}
+  .elinks{grid-column:1/-1;justify-content:flex-start}
+  .facts>div{grid-template-columns:90px minmax(0,1fr)}
+  .wlt b{font-size:21px}
+  .profile-head h2{font-size:20px}
+  .hex{width:66px;height:58px}
+  .hex span{font-size:13px}
+}
+@media (max-width:360px){
+  .wrap{padding:0 14px}
+}
+/* if the tab row ever has to scroll, fade its right edge so the hidden tabs are noticeable */
+nav.tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
 </style>
 </head>
 <body>
-
-<!-- NAV -->
-<nav id="nav">
-  <div class="nav-inner">
-    <div class="logo" onclick="showPage('home')">
-      <div class="logo-icon">F</div>
-      <div class="logo-text">FTC<span>entral</span></div>
-    </div>
-    <div style="display:flex;gap:2px;flex:1" id="nav-links"></div>
-    <div id="nav-auth"></div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#/home" aria-label="FTCentral home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3 57 17.5v29L32 61 7 46.5v-29z" fill="#00E5FF"/><text x="32" y="42" font-family="Arial,sans-serif" font-weight="700" font-size="28" text-anchor="middle" fill="#0A0C14">F</text></svg>
+      <span>FT<b>Central</b></span>
+    </a>
+    <nav class="tabs" aria-label="Main">
+      <a href="#/dashboard" data-page="dashboard">Dashboard</a>
+      <a href="#/scouting" data-page="scouting">Scouting</a>
+      <a href="#/events" data-page="events">Events</a>
+      <a href="#/messages" data-page="messages">Messages</a>
+      <a href="#/learning" data-page="learning">Learning</a>
+    </nav>
+    <div id="me"></div>
   </div>
-</nav>
+</header>
 
-<!-- PAGES -->
-<div id="page-home"></div>
-<div id="page-dashboard" hidden></div>
-<div id="page-messages" hidden></div>
-<div id="page-scouting" hidden></div>
-<div id="page-learning" hidden></div>
-<div id="page-register" hidden></div>
+<main id="main" tabindex="-1"></main>
 
-<!-- FOOTER -->
-<footer>
-  <p style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--dim);letter-spacing:.1em">
-    FTCENTRAL &bull; BUILT WITH HEART BY THE
-    <a href="https://ftcscout.org/teams/27318" target="_blank" style="color:var(--cyan)">MANTABOTS -- TEAM 27318</a>
-    &bull; FASNY
-  </p>
-  <p style="font-size:12px;color:var(--dim);margin-top:5px">
-    Live data from <a href="https://ftcscout.org" target="_blank">FTC Scout</a> &bull;
-    <a href="https://ftcbonfire.app" target="_blank">FTC Bonfire</a> &bull;
-    <a href="https://ftcvideos.org" target="_blank">FTC Videos</a>
-  </p>
+<footer class="site">
+  <div class="wrap">
+    <div>
+      <p><strong>FTCentral</strong> is made by the <a href="https://mantabots.org" target="_blank" rel="noopener">MantaBots</a>, FTC Team <a href="#/scouting/27318">27318</a> at the French-American School of New York.</p>
+      <p>Team, match and event data comes from <a href="https://ftcscout.org" target="_blank" rel="noopener">FTC Scout</a>, which uses the official FIRST API. Match videos are from <a href="https://ftcvideos.org" target="_blank" rel="noopener">FTC Match Videos</a>.</p>
+      <p>FIRST&reg;, FIRST&reg; Tech Challenge and BIOBUZZ&trade; are trademarks of FIRST. FTCentral is a student project and is not run or endorsed by FIRST.</p>
+    </div>
+    <div>
+      <p><strong>Your privacy</strong></p>
+      <p>FTCentral has no accounts, ads or tracking. Your profile, ratings, notes and message drafts are saved only in this browser. The only thing sent anywhere is the team or event you look up, which goes to FTC Scout.</p>
+      <p><a href="https://github.com/Alex-8bit-dot/FTCentral" target="_blank" rel="noopener">Source code on GitHub</a></p>
+    </div>
+  </div>
 </footer>
 
 <script>
-// ─── APP STATE ───────────────────────────────────────────────────────────────
-let currentPage = 'home';
-let currentUser = null;
-const scoutNotes = {};
+(() => {
+'use strict';
 
-// ─── NAVIGATION ──────────────────────────────────────────────────────────────
-const PAGES = ['home','dashboard','messages','scouting','learning','register'];
+/* ================= Season and reference data ================= */
 
-function renderNav() {
-  const links = document.getElementById('nav-links');
-  links.innerHTML = PAGES.map(id => {
-    const label = id === 'messages' ? '💬 Messages' : id.charAt(0).toUpperCase() + id.slice(1);
-    return `<button class="nav-btn ${currentPage===id?'active':''}" onclick="showPage('${id}')">${label}</button>`;
-  }).join('');
+const CURRENT_SEASON = 2026;     // BIOBUZZ, 2026-27. FTC Scout numbers seasons by the year they start.
+const MIN_STATS_SEASON = 2022;   // Oldest season this page reads full stats for (same query shape from 2022 on).
 
-  const auth = document.getElementById('nav-auth');
-  if (currentUser) {
-    const teamBadge = currentUser.team ? `<span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan)">#${currentUser.team}</span>` : '';
-    auth.innerHTML = `
-      <div class="chip" style="gap:8px">
-        <div class="avatar">${currentUser.name[0].toUpperCase()}</div>
-        <span>${currentUser.name}</span>${teamBadge}
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="logout()" style="margin-left:10px">Log out</button>`;
-  } else {
-    auth.innerHTML = `<button class="btn btn-cyan btn-sm" onclick="showPage('home')">Sign In</button>`;
-  }
-}
-
-function showPage(id) {
-  currentPage = id;
-  PAGES.forEach(p => {
-    document.getElementById('page-'+p).hidden = (p !== id);
-  });
-  renderNav();
-  if (id === 'home')      renderHome();
-  if (id === 'dashboard') renderDashboard();
-  if (id === 'messages')  renderMessages();
-  if (id === 'scouting')  renderScouting();
-  if (id === 'learning')  renderLearning();
-  if (id === 'register')  renderRegister();
-  window.scrollTo(0,0);
-}
-
-function logout() {
-  currentUser = null;
-  showPage('home');
-}
-
-// ─── HOME / LOGIN ─────────────────────────────────────────────────────────────
-function renderHome() {
-  const el = document.getElementById('page-home');
-  el.className = 'grid-bg';
-  el.style.minHeight = 'calc(100vh - 59px)';
-  el.innerHTML = `
-  <div style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 59px);padding:24px">
-  <div style="max-width:960px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center">
-    <div class="fade-in">
-      <div class="lbl" style="margin-bottom:16px">FTC Robotics Platform</div>
-      <h1 style="font-size:44px;font-weight:700;line-height:1.15;color:var(--text);margin-bottom:20px">
-        All your team needs.<br><span style="color:var(--cyan)">One place.</span>
-      </h1>
-      <p style="color:var(--muted);font-size:15px;line-height:1.75;margin-bottom:36px">
-        FTCentral unifies team messaging, <strong style="color:var(--cyan)">live scouting data from FTC Scout</strong>, learning resources, and event coordination for every FTC team worldwide.
-      </p>
-      <div style="display:flex;gap:28px">
-        ${[['6','Modules'],['10K+','Teams'],['Live','FTC Data']].map(([n,l])=>`
-        <div style="text-align:center">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:${n.length>4?24:40}px;color:var(--cyan);line-height:1">${n}</div>
-          <div style="font-size:12px;color:var(--dim);margin-top:4px">${l}</div>
-        </div>`).join('')}
-      </div>
-    </div>
-    <div class="card fade-in" style="animation-delay:.1s">
-      <div class="tab-bar" id="auth-tabs">
-        <button class="tab active" onclick="switchAuthMode('login')">Sign In</button>
-        <button class="tab" onclick="switchAuthMode('signup')">Create Account</button>
-      </div>
-      <div id="auth-form"></div>
-    </div>
-  </div></div>`;
-  renderAuthForm('login');
-}
-
-let authMode = 'login';
-function switchAuthMode(mode) {
-  authMode = mode;
-  document.querySelectorAll('#auth-tabs .tab').forEach((t,i)=>{
-    t.classList.toggle('active', (mode==='login'&&i===0)||(mode==='signup'&&i===1));
-  });
-  renderAuthForm(mode);
-}
-
-function renderAuthForm(mode) {
-  const el = document.getElementById('auth-form');
-  if (!el) return;
-  el.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:14px">
-      ${['Full Name|name|text|Your name','Email|email|email|you@example.com','Password|password|password|••••••••'].map(f=>{
-        const [lbl,id,type,ph] = f.split('|');
-        return `<div><div style="font-size:12px;color:var(--muted);margin-bottom:5px">${lbl}</div>
-          <input type="${type}" id="auth-${id}" placeholder="${ph}" onkeydown="if(event.key==='Enter')doLogin()"></div>`;
-      }).join('')}
-      ${mode==='signup'?`
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:5px">Your Role</div>
-          <select id="auth-role" onchange="toggleTeamField()">
-            <option value="member">Team Member / Student</option>
-            <option value="coach">Coach / Mentor</option>
-            <option value="other">FTC-Related (no team)</option>
-          </select>
-        </div>
-        <div id="team-field">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:5px">FTC Team Number</div>
-          <input type="text" id="auth-team" placeholder="e.g. 27318" onkeydown="if(event.key==='Enter')doLogin()">
-        </div>`:''}
-      <div id="auth-err" style="color:var(--red);font-size:13px;display:none"></div>
-      <button class="btn btn-cyan" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()">
-        ${mode==='login'?'Sign In':'Create Account'}
-      </button>
-      <p style="text-align:center;font-size:12px;color:var(--dim)">
-        Built by the <a href="https://ftcscout.org/teams/27318" target="_blank">Mantabots (27318)</a>
-      </p>
-    </div>`;
-}
-
-function toggleTeamField() {
-  const role = document.getElementById('auth-role')?.value;
-  const tf = document.getElementById('team-field');
-  if (tf) tf.hidden = (role === 'other');
-}
-
-function doLogin() {
-  const name  = document.getElementById('auth-name')?.value.trim();
-  const email = document.getElementById('auth-email')?.value.trim();
-  const pass  = document.getElementById('auth-password')?.value.trim();
-  const role  = document.getElementById('auth-role')?.value || 'member';
-  const team  = document.getElementById('auth-team')?.value.trim() || '';
-  const err   = document.getElementById('auth-err');
-
-  if (!name || !email || !pass) { err.textContent='Please fill in all fields.'; err.hidden=false; return; }
-  if (authMode==='signup' && role!=='other' && !team) { err.textContent='Please enter your team number.'; err.hidden=false; return; }
-  err.hidden = true;
-  currentUser = { name, email, role, team };
-  showPage('dashboard');
-}
-
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
-const EVENTS_DATA = [
-  {name:"FTC Game Kickoff 2025-26",        date:"Sep 6, 2025", loc:"Virtual / Worldwide",           type:"kickoff"},
-  {name:"INTO THE DEEP Qualifier -- NY",   date:"Nov 2, 2025", loc:"FASNY, New York",               type:"qualifier"},
-  {name:"NY Regional Championship",        date:"Jan 18, 2026",loc:"Albany, NY",                    type:"regional"},
-  {name:"World Championship -- Houston",   date:"Apr 16, 2026",loc:"Houston Convention Center, TX", type:"worlds"},
-  {name:"Scrimmage @ Mantabots HQ",        date:"Oct 5, 2025", loc:"FASNY, NYC",                    type:"scrimmage"},
-];
-let communityFeed = [
-  {from:"Team 12345",      text:"Anyone have extra motor controllers?",        time:"10:32 AM"},
-  {from:"Team 8801",       text:"We have 2 REV Expansion Hubs available!",     time:"10:35 AM"},
-  {from:"Mantabots 27318", text:"Hosting a scrimmage Oct 5 -- DM us to join!", time:"10:41 AM"},
-];
-
-function renderDashboard() {
-  const el = document.getElementById('page-dashboard');
-  const greeting = currentUser
-    ? `Welcome back, ${currentUser.name}${currentUser.team?' -- Team #'+currentUser.team:''}.`
-    : 'Welcome to FTCentral.';
-  el.innerHTML = `
-  <div class="page fade-in">
-    <div class="lbl">Command Center</div>
-    <h1 class="page-title">Dashboard</h1>
-    <p class="page-sub">${greeting} Upcoming events and community feed.</p>
-    <div class="two-col">
-      <div>
-        <div class="lbl" style="margin-bottom:14px">Upcoming Events</div>
-        ${EVENTS_DATA.map(ev=>`
-          <div class="ev-card">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-              <div style="font-weight:600;font-size:14px;color:var(--text)">${ev.name}</div>
-              <span class="badge ${ev.type==='worlds'?'badge-orange':''}">${ev.type}</span>
-            </div>
-            <div style="font-size:12px;color:var(--muted)">
-              <span style="color:var(--orange);font-family:monospace">${ev.date}</span> &bull; ${ev.loc}
-            </div>
-          </div>`).join('')}
-        <a href="https://ftc-events.firstinspires.org" target="_blank" class="btn btn-ghost btn-sm" style="margin-top:8px">View all FIRST events &rarr;</a>
-      </div>
-      <div>
-        <div class="lbl" style="margin-bottom:14px">Community Feed</div>
-        <div class="card" style="padding:16px">
-          <div id="feed-msgs" style="max-height:260px;overflow-y:auto;margin-bottom:14px"></div>
-          <div style="display:flex;gap:10px">
-            <input id="feed-input" placeholder="${currentUser?'Post to community feed...':'Sign in to post...'}"
-              ${!currentUser?'disabled':''} onkeydown="if(event.key==='Enter')sendFeed()" style="flex:1">
-            <button class="btn btn-cyan btn-sm" onclick="sendFeed()" ${!currentUser?'disabled':''}>Send</button>
-          </div>
-        </div>
-        <div class="lbl" style="margin-top:24px;margin-bottom:14px">Quick Access</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${[['💬','Message Teams','messages'],['🔭','Scout a Team','scouting'],['📚','Learning Hub','learning'],['📋','Register Team','register']].map(([i,l,p])=>`
-            <button class="card" onclick="showPage('${p}')" style="cursor:pointer;text-align:left;padding:14px;background:var(--bg2);border-radius:10px">
-              <div style="font-size:20px;margin-bottom:6px">${i}</div>
-              <div style="font-size:13px;font-weight:600">${l}</div>
-            </button>`).join('')}
-        </div>
-      </div>
-    </div>
-  </div>`;
-  renderFeed();
-}
-
-function renderFeed() {
-  const el = document.getElementById('feed-msgs');
-  if (!el) return;
-  const myName = currentUser ? `${currentUser.name}${currentUser.team?` (${currentUser.team})`:''}` : 'You';
-  el.innerHTML = communityFeed.map(m=>{
-    const mine = m.from === myName;
-    return `<div class="bubble ${mine?'mine':''}">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:12px;color:${mine?'var(--cyan)':'var(--muted)'};font-weight:600">${m.from}</span>
-        <span style="font-size:11px;color:var(--dim)">${m.time}</span>
-      </div>
-      <div style="color:var(--text)">${m.text}</div>
-    </div>`;
-  }).join('');
-  el.scrollTop = el.scrollHeight;
-}
-
-function sendFeed() {
-  const inp = document.getElementById('feed-input');
-  if (!inp || !inp.value.trim() || !currentUser) return;
-  const myName = `${currentUser.name}${currentUser.team?` (${currentUser.team})`:''}`;
-  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  communityFeed.push({from:myName, text:inp.value.trim(), time:now});
-  inp.value = '';
-  renderFeed();
-}
-
-// ─── MESSAGES ────────────────────────────────────────────────────────────────
-let conversations = {
-  '8801': [
-    {from:'Iron Giants (8801)', text:'Hey Mantabots! Great match last weekend.', time:'Yesterday 4:12 PM', mine:false},
-    {from:'You',                text:'Thanks! Your auto was really impressive.',  time:'Yesterday 4:18 PM', mine:true},
-    {from:'Iron Giants (8801)', text:'We use Road Runner -- happy to share our paths!', time:'Yesterday 4:20 PM', mine:false},
-  ],
-  '12345': [
-    {from:'Cyber Eagles (12345)', text:'Are you coming to the qualifier next month?', time:'Mon 2:30 PM', mine:false},
-    {from:'You',                  text:'Yes! We are registered. See you there.',       time:'Mon 2:45 PM', mine:true},
-  ],
+const SEASONS = {
+  2026: ['BIOBUZZ', '2026-27'],
+  2025: ['DECODE', '2025-26'],
+  2024: ['INTO THE DEEP', '2024-25'],
+  2023: ['CENTERSTAGE', '2023-24'],
+  2022: ['POWERPLAY', '2022-23'],
+  2021: ['FREIGHT FRENZY', '2021-22'],
+  2020: ['ULTIMATE GOAL', '2020-21'],
+  2019: ['SKYSTONE', '2019-20']
 };
-let activeConvo = '8801';
+const seasonName = s => (SEASONS[s] ? SEASONS[s][0] : String(s));
+const seasonLabel = s => (SEASONS[s] ? SEASONS[s][0] + ' ' + SEASONS[s][1] : String(s));
 
-function renderMessages() {
-  const el = document.getElementById('page-messages');
-  el.innerHTML = `
-  <div class="page fade-in" style="padding-top:32px">
-    <div class="lbl">Inter-Team Communication</div>
-    <h1 class="page-title" style="margin-bottom:24px">Messages</h1>
-    ${!currentUser?`<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:8px;padding:14px 20px;margin-bottom:24px;font-size:14px;color:var(--muted)">Please sign in to send messages to other teams.</div>`:''}
-    <div style="display:grid;grid-template-columns:260px 1fr;gap:16px;height:560px">
-      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden">
-        <div style="padding:14px 14px 10px;border-bottom:1px solid var(--border)">
-          <div style="font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--cyan);letter-spacing:.1em;margin-bottom:10px">NEW CONVERSATION</div>
-          <div style="display:flex;gap:8px">
-            <input id="new-team-input" placeholder="Team number..." onkeydown="if(event.key==='Enter')startConvo()" style="flex:1;padding:8px 12px;font-size:13px">
-            <button class="btn btn-cyan" style="padding:8px 12px;font-size:12px" onclick="startConvo()">+</button>
-          </div>
-          <div id="convo-err" style="font-size:12px;color:var(--red);margin-top:6px;display:none"></div>
-        </div>
-        <div style="flex:1;overflow-y:auto;padding:8px" id="convo-list"></div>
-      </div>
-      <div style="background:var(--bg1);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden">
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,229,255,.1);display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;color:var(--cyan);font-size:13px" id="chat-team-icon"></div>
-          <div>
-            <div style="font-weight:600;font-size:15px" id="chat-team-name"></div>
-            <div style="font-size:12px;color:var(--muted)" id="chat-team-sub"></div>
-          </div>
-          <a id="chat-ftcscout-link" href="#" target="_blank" class="btn btn-ghost btn-sm" style="margin-left:auto;text-decoration:none">View on FTC Scout &rarr;</a>
-        </div>
-        <div style="flex:1;overflow-y:auto;padding:16px 20px" id="chat-messages"></div>
-        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px">
-          <input id="chat-input" placeholder="${currentUser?'Send a message...':'Sign in to send messages'}" ${!currentUser?'disabled':''} onkeydown="if(event.key==='Enter')sendMsg()" style="flex:1">
-          <button class="btn btn-cyan btn-sm" onclick="sendMsg()" ${!currentUser?'disabled':''}>Send</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-  renderConvoList();
-  openConvo(activeConvo);
+// Region names, same codes FTC Scout uses for its region filter.
+const REGION_GROUPS = [
+  ['Groups', { All: 'Worldwide', UnitedStates: 'United States', International: 'Outside the US' }],
+  ['United States', {
+    USAK: 'Alaska', USAL: 'Alabama', USAR: 'Arkansas', USAZ: 'Arizona', USCA: 'California', USCALA: 'California - Los Angeles',
+    USCALS: 'California - LAUSD', USCANO: 'California - Northern', USCASD: 'California - San Diego', USCHS: 'Chesapeake',
+    USCO: 'Colorado', USCT: 'Connecticut', USDE: 'Delaware', USFCT: 'Four Corners', USFL: 'Florida', USGA: 'Georgia',
+    USHI: 'Hawaii', USIA: 'Iowa', USID: 'Idaho', USIL: 'Illinois', USIN: 'Indiana', USKY: 'Kentucky', USLA: 'Louisiana',
+    USMA: 'Massachusetts', USMD: 'Maryland', USMI: 'Michigan', USMN: 'Minnesota', USMOKS: 'Missouri and Kansas',
+    USMS: 'Mississippi', USMT: 'Montana', USNC: 'North Carolina', USND: 'North Dakota', USNE: 'Nebraska',
+    USNH: 'New Hampshire', USNJ: 'New Jersey', USNM: 'New Mexico', USNV: 'Nevada', USNY: 'New York (all)',
+    USNYEX: 'New York - Excelsior', USNYLI: 'New York - Long Island', USNYNY: 'New York - NYC', USOH: 'Ohio',
+    USOK: 'Oklahoma', USOR: 'Oregon', USPA: 'Pennsylvania', USPR: 'Puerto Rico', USRI: 'Rhode Island',
+    USSC: 'South Carolina', USTN: 'Tennessee', USTX: 'Texas (all)', USTXCE: 'Texas - Central', USTXHO: 'Texas - Houston',
+    USTXNO: 'Texas - North', USTXSO: 'Texas - South', USTXWP: 'Texas - West and Panhandle', USUT: 'Utah',
+    USVA: 'Virginia', USVT: 'Vermont', USWA: 'Washington', USWI: 'Wisconsin', USWV: 'West Virginia', USWY: 'Wyoming'
+  }],
+  ['Canada', { CAAB: 'Alberta', CABC: 'British Columbia', CANL: 'Newfoundland and Labrador', CAON: 'Ontario', CAQC: 'Quebec' }],
+  ['Other countries', {
+    AE: 'United Arab Emirates', AR: 'Argentina', AU: 'Australia', BR: 'Brazil', CN: 'China', CO: 'Colombia', CY: 'Cyprus',
+    DE: 'Germany', EC: 'Ecuador', ECB: 'Eastern Caribbean', EG: 'Egypt', ES: 'Spain', FR: 'France', GB: 'Great Britain',
+    GR: 'Greece', HKG: 'Hong Kong', HT: 'Haiti', HU: 'Hungary', ID: 'Indonesia', IL: 'Israel', IN: 'India', IT: 'Italy',
+    JM: 'Jamaica', JP: 'Japan', KR: 'South Korea', KW: 'Kuwait', KZ: 'Kazakhstan', LT: 'Lithuania', LY: 'Libya',
+    MA: 'Morocco', MD: 'Moldova', MX: 'Mexico', MY: 'Malaysia', NG: 'Nigeria', NL: 'Netherlands', NZ: 'New Zealand',
+    PA: 'Panama', PL: 'Poland', PT: 'Portugal', PY: 'Paraguay', QA: 'Qatar', RO: 'Romania', RU: 'Russia',
+    SA: 'Saudi Arabia', SV: 'El Salvador', TH: 'Thailand', TR: 'Turkey', TT: 'Trinidad and Tobago', TW: 'Taiwan',
+    UA: 'Ukraine', VE: 'Venezuela', VN: 'Vietnam', ZA: 'South Africa'
+  }]
+];
+const REGION_NAMES = Object.assign({}, ...REGION_GROUPS.map(g => g[1]));
+const isRegion = r => typeof r === 'string' && Object.prototype.hasOwnProperty.call(REGION_NAMES, r);
+
+const EVENT_TYPES = {
+  Scrimmage: 'Scrimmage', LeagueMeet: 'League meet', Qualifier: 'Qualifier', LeagueTournament: 'League tournament',
+  Championship: 'Championship', Other: 'Other', FIRSTChampionship: 'FIRST Championship', SuperQualifier: 'Super qualifier',
+  InnovationChallenge: 'Innovation Challenge', OffSeason: 'Off-season', Kickoff: 'Kickoff', Workshop: 'Workshop',
+  DemoExhibition: 'Demo', VolunteerSignup: 'Volunteer signup', PracticeDay: 'Practice day', Premier: 'Premier event',
+  NonAdvancement: 'Scrimmage (non-advancing)', Pilot: 'Pilot'
+};
+const TYPE_FILTERS = {
+  all: ['All event types', null],
+  official: ['Qualifiers and championships', ['Qualifier', 'SuperQualifier', 'Championship', 'Premier', 'FIRSTChampionship', 'LeagueTournament', 'InnovationChallenge']],
+  league: ['League meets and tournaments', ['LeagueMeet', 'LeagueTournament']],
+  practice: ['Scrimmages, workshops and demos', ['Scrimmage', 'NonAdvancement', 'OffSeason', 'PracticeDay', 'Workshop', 'DemoExhibition', 'Kickoff', 'Other', 'Pilot']]
+};
+const BIG_TYPES = ['Qualifier', 'SuperQualifier', 'Championship', 'Premier', 'FIRSTChampionship', 'LeagueTournament'];
+
+const AWARD_NAMES = {
+  Inspire: 'Inspire Award', Think: 'Think Award', Connect: 'Connect Award', Innovate: 'Innovate Award',
+  Control: 'Control Award', Motivate: 'Motivate Award', Design: 'Design Award', Reach: 'Reach Award',
+  Sustain: 'Sustain Award', Promote: 'Promote Award', Compass: 'Compass Award', JudgesChoice: "Judges' Choice Award",
+  Winner: 'Winning Alliance', Finalist: 'Finalist Alliance', DivisionWinner: 'Division Winning Alliance',
+  DivisionFinalist: 'Division Finalist Alliance', ConferenceFinalist: 'Conference Finalist Alliance', TopRanked: 'Top Ranked',
+  DeansListWinner: "Dean's List Winner", DeansListFinalist: "Dean's List Finalist", DeansListSemiFinalist: "Dean's List Semifinalist"
+};
+const ALLIANCE_AWARDS = ['Winner', 'Finalist', 'DivisionWinner', 'DivisionFinalist', 'ConferenceFinalist'];
+
+const RATING_LABELS = {
+  1: 'Very weak, avoid as a partner', 2: 'Below average', 3: 'Developing team', 4: 'Slightly below average',
+  5: 'Average competitor', 6: 'Solid team', 7: 'Strong competitor', 8: 'Top-tier team',
+  9: 'Elite, prioritize as a partner', 10: 'World-class team'
+};
+const ratingColor = v => (v <= 2 ? '#FF6B6B' : v <= 4 ? '#FF9F43' : v <= 6 ? '#FFB930' : v <= 8 ? '#2FD68B' : '#00E5FF');
+
+const RESOURCES = {
+  season: ['BIOBUZZ season', [
+    ['🐝', 'BIOBUZZ game and season', "FIRST's official season page with the game overview and key dates.", 'https://www.firstinspires.org/programs/ftc/game-and-season'],
+    ['📕', 'Competition Manual (PDF)', 'The rulebook: game rules, robot rules, awards and how teams advance.', 'https://ftc-resources.firstinspires.org/ftc/game/manual'],
+    ['🌐', 'Competition Manual, web version', 'The same manual as searchable web pages, split by section.', 'https://ftc-resources.firstinspires.org/ftc/game/cm-html'],
+    ['💬', 'Ask the manual', "FIRST's chatbot that answers rules questions from the Competition Manual.", 'https://ftc-cmchatbot.firstinspires.org/'],
+    ['🎬', 'BIOBUZZ game animation', 'The official video that walks through a full match.', 'https://youtu.be/sUH3z5a5S9I'],
+    ['🃏', 'Gameplay card', 'One-page summary of the field and scoring.', 'https://www.firstinspires.org/hubfs/web/program/ftc/biobuzz-gamepostcard.pdf'],
+    ['📰', 'Team updates and season materials', 'Rule changes FIRST publishes during the season, plus translations of the manual.', 'https://ftc-resources.firstinspires.org/ftc/game']
+  ]],
+  programming: ['Programming', [
+    ['💡', 'FTC Docs: programming', 'Official tutorials for Blocks, OnBot Java and Android Studio, plus vision and PID.', 'https://ftc-docs.firstinspires.org/en/latest/programming_resources/index.html'],
+    ['☕', 'FtcRobotController', 'The official robot code project every FTC team starts from.', 'https://github.com/FIRST-Tech-Challenge/FtcRobotController'],
+    ['📘', 'Game Manual 0', 'Community guide to FTC programming, mechanical design and strategy.', 'https://gm0.org/en/latest/'],
+    ['🛣️', 'Road Runner 1.0', 'Motion planning for autonomous, with a quickstart and tuning guides.', 'https://rr.brott.dev/docs/v1-0/installation/'],
+    ['🧭', 'Pedro Pathing', 'Path-following library that many teams use for autonomous.', 'https://pedropathing.com/docs'],
+    ['🔌', 'REV Control Hub docs', 'Setting up, wiring and programming the REV control system.', 'https://docs.revrobotics.com/duo-control/']
+  ]],
+  design: ['Design and CAD', [
+    ['📐', 'Onshape Learning Center', 'Courses for Onshape, the CAD tool most FTC teams use.', 'https://learn.onshape.com'],
+    ['⚙️', 'goBILDA', 'Motion and structure parts used on many FTC robots.', 'https://www.gobilda.com'],
+    ['🔩', 'REV Robotics', 'Control system, motors and building system parts.', 'https://www.revrobotics.com'],
+    ['📘', 'Game Manual 0: robot design', 'Drivetrains, intakes, lifts and other mechanisms explained.', 'https://gm0.org/en/latest/']
+  ]],
+  data: ['Scouting and data', [
+    ['🔭', 'FTC Scout', 'Stats, OPR and match history for every team. FTCentral scouting runs on its data.', 'https://ftcscout.org'],
+    ['🎥', 'FTC Match Videos', 'Match videos you can search by team number.', 'https://ftcvideos.org'],
+    ['🏆', 'FTC Event Web', "FIRST's official schedules, rankings and results for every event.", 'https://ftc-events.firstinspires.org']
+  ]]
+};
+
+/* ================= Small helpers ================= */
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const main = $('#main');
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtInt = n => Number(n).toLocaleString('en-US');
+const ordinal = n => { const v = n % 100; const s = (v >= 11 && v <= 13) ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th'); return n + s; };
+const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayStr = () => ymd(new Date());
+const parseDay = s => { const p = String(s).slice(0, 10).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const addDays = (s, n) => { const d = parseDay(s); d.setDate(d.getDate() + n); return ymd(d); };
+const dayDiff = (a, b) => Math.round((parseDay(b) - parseDay(a)) / 86400000);
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const fmtDay = (s, yr = true) => { const d = parseDay(s); return MON[d.getMonth()] + ' ' + d.getDate() + (yr ? ', ' + d.getFullYear() : ''); };
+
+function fmtRange(a, b) {
+  if (!a) return '';
+  if (!b || a === b) return fmtDay(a);
+  const da = parseDay(a), db = parseDay(b);
+  if (da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth()) return MON[da.getMonth()] + ' ' + da.getDate() + '-' + db.getDate() + ', ' + da.getFullYear();
+  if (da.getFullYear() === db.getFullYear()) return fmtDay(a, false) + ' to ' + fmtDay(b, false) + ', ' + da.getFullYear();
+  return fmtDay(a) + ' to ' + fmtDay(b);
 }
-
-function renderConvoList() {
-  const el = document.getElementById('convo-list');
-  if (!el) return;
-  const teams = Object.keys(conversations);
-  el.innerHTML = `<div style="font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--dim);letter-spacing:.08em;padding:6px 8px;margin-bottom:4px">CONVERSATIONS</div>` +
-    (teams.length===0 ? `<div style="font-size:13px;color:var(--dim);padding:8px 10px">No conversations yet.</div>` :
-    teams.map(team=>{
-      const msgs = conversations[team];
-      const last = msgs[msgs.length-1];
-      return `<button class="sidebar-item ${activeConvo===team?'active':''}" onclick="openConvo('${team}')">
-        <div style="width:34px;height:34px;border-radius:8px;background:${activeConvo===team?'rgba(0,229,255,.2)':'var(--bg3)'};display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);flex-shrink:0">${team}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:${activeConvo===team?'var(--cyan)':'var(--text)'}">${team}</div>
-          ${last?`<div style="font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${last.text}</div>`:''}
-        </div>
-      </button>`;
-    }).join(''));
+function relDay(start, end) {
+  const t = todayStr();
+  if (start <= t && t <= (end || start)) return 'Happening now';
+  const n = dayDiff(t, start);
+  if (n === 1) return 'Tomorrow';
+  if (n > 1) return 'In ' + n + ' days';
+  return 'Finished';
 }
-
-function openConvo(team) {
-  activeConvo = team;
-  const icon = document.getElementById('chat-team-icon');
-  const name = document.getElementById('chat-team-name');
-  const sub  = document.getElementById('chat-team-sub');
-  const link = document.getElementById('chat-ftcscout-link');
-  if (icon) icon.textContent = team;
-  if (name) name.textContent = `Team ${team}`;
-  if (sub)  sub.textContent  = `FTC Team #${team}`;
-  if (link) link.href = `https://ftcscout.org/teams/${team}`;
-  renderChatMessages();
-  renderConvoList();
+function locStr(l) {
+  if (!l) return '';
+  return [l.city, l.state, l.country].filter(Boolean).join(', ');
 }
-
-function renderChatMessages() {
-  const el = document.getElementById('chat-messages');
-  if (!el) return;
-  const msgs = conversations[activeConvo] || [];
-  el.innerHTML = msgs.length===0
-    ? `<div style="text-align:center;color:var(--dim);font-size:14px;padding-top:60px">No messages yet. Send the first one!</div>`
-    : msgs.map(m=>`
-      <div class="bubble ${m.mine?'mine':''}">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="font-size:12px;color:${m.mine?'var(--cyan)':'var(--muted)'};font-weight:600">${m.from}</span>
-          <span style="font-size:11px;color:var(--dim)">${m.time}</span>
-        </div>
-        <div style="color:var(--text)">${m.text}</div>
-      </div>`).join('');
-  el.scrollTop = el.scrollHeight;
+function safeUrl(u) {
+  if (!u) return null;
+  let s = String(u).trim();
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+  try { const url = new URL(s); return (url.protocol === 'https:' || url.protocol === 'http:') ? url.href : null; } catch (e) { return null; }
 }
+const domainOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
 
-function startConvo() {
-  const inp = document.getElementById('new-team-input');
-  const err = document.getElementById('convo-err');
-  const num = inp.value.trim().replace(/\D/g,'');
-  if (!num) { err.textContent='Enter a valid team number.'; err.hidden=false; return; }
-  if (num === (currentUser?.team||'')) { err.textContent="That's your own team."; err.hidden=false; return; }
-  err.hidden = true;
-  if (!conversations[num]) conversations[num] = [];
-  inp.value = '';
-  openConvo(num);
-  renderConvoList();
-}
-
-function sendMsg() {
-  const inp = document.getElementById('chat-input');
-  if (!inp || !inp.value.trim() || !currentUser || !activeConvo) return;
-  const myLabel = `${currentUser.name}${currentUser.team?` (${currentUser.team})`:''}`;
-  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  if (!conversations[activeConvo]) conversations[activeConvo] = [];
-  conversations[activeConvo].push({from:myLabel, text:inp.value.trim(), time:now, mine:true});
-  inp.value = '';
-  renderChatMessages();
-  renderConvoList();
-  // Simulated reply
-  const replies = [
-    'Got it, thanks!','Sounds good. See you at the event!',
-    "We're working on that too -- let's collaborate.",
-    'Can you share your CAD files?',
-    'What programming language do you use for auto?',
-    'Great idea! We will bring it up with our coach.',
-  ];
-  setTimeout(()=>{
-    conversations[activeConvo].push({
-      from:`Team ${activeConvo}`,
-      text:replies[Math.floor(Math.random()*replies.length)],
-      time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
-      mine:false,
-    });
-    renderChatMessages();
-    renderConvoList();
-  }, 1500);
-}
-
-// ─── SCOUTING ────────────────────────────────────────────────────────────────
-// This is the key feature. We call api.ftcscout.org/graphql DIRECTLY from the browser.
-// This works when hosted (not file://) because FTC Scout's Apollo Server
-// sets Access-Control-Allow-Origin: * for hosted origins.
-// Running from file:// is blocked by CORS -- host on Netlify Drop or any server.
-
-const SEASON = 2025; // DECODE (2025-2026)
-
-// Expand common FTC Scout school name abbreviations to full names
-function expandSchoolName(name) {
-  if (!name) return null;
-  return name
-    .replace(/\bSch\b/gi, 'School')
-    .replace(/\bHs\b/gi, 'High School')
-    .replace(/\bMs\b/gi, 'Middle School')
-    .replace(/\bElem\b/gi, 'Elementary')
-    .replace(/\bAcad\b/gi, 'Academy')
-    .replace(/\bTech\b/gi, 'Technology')
-    .replace(/\bMath\b/gi, 'Mathematics')
-    .replace(/\bSci\b/gi, 'Science')
-    .replace(/\bEngg?\b/gi, 'Engineering')
-    .replace(/\bIntl\b/gi, 'International')
-    .replace(/\bAm\b/gi, 'American')
-    .replace(/\bFr\b/gi, 'French')
-    .replace(/\bNy\b/gi, 'New York')
-    .replace(/\bSec\b/gi, 'Secondary')
-    .replace(/\bPrep\b/gi, 'Preparatory')
-    .replace(/\bChrist\b/gi, 'Christian')
-    .replace(/\bSt\b/gi, 'Saint')
-    .replace(/\bMt\b/gi, 'Mount')
-    .replace(/\bUniv\b/gi, 'University')
-    .replace(/\bInst\b/gi, 'Institute')
-    .replace(/\bCtr\b/gi, 'Center')
-    .replace(/-/g, ' ')
-    .replace(/\s+/g, ' ')
+// FIRST's database shortens school names ("French American Sch of Ny-Sec"). Spell out the common abbreviations.
+function cleanSchool(name) {
+  if (!name) return '';
+  return String(name)
+    .replace(/(\w)-(?=[A-Za-z])/g, '$1 ')
+    .replace(/\bSch\b\.?/gi, 'School')
+    .replace(/\bH\.?\s?S\b\.?/g, 'High School')
+    .replace(/\bHs\b/g, 'High School')
+    .replace(/\bMs\b/g, 'Middle School')
+    .replace(/\bJhs\b/gi, 'Junior High School')
+    .replace(/\bElem\b\.?/gi, 'Elementary')
+    .replace(/\bAcad\b\.?/gi, 'Academy')
+    .replace(/\bSci\b\.?/gi, 'Science')
+    .replace(/\bIntl\b\.?/gi, 'International')
+    .replace(/\bChtr\b\.?/gi, 'Charter')
+    .replace(/\bCtr\b\.?/gi, 'Center')
+    .replace(/\bUniv\b\.?/gi, 'University')
+    .replace(/\bInst\b\.?/gi, 'Institute')
+    .replace(/\bPrep\b\.?/gi, 'Preparatory')
+    .replace(/\bNy\b/g, 'New York')
+    .replace(/\bSec\b\.?/g, 'Secondary')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
-// Team ratings storage (persists in localStorage)
-const teamRatings = JSON.parse(localStorage.getItem('ftcRatings') || '{}');
-function saveRating(teamNum, val) {
-  teamRatings[teamNum] = val;
-  localStorage.setItem('ftcRatings', JSON.stringify(teamRatings));
+function awardText(a, season) {
+  const base = AWARD_NAMES[a.type] || a.type;
+  if (/^DeansList/.test(a.type)) return season >= 2025 ? base.replace("Dean's List", 'FIRST Leadership Award') : base;
+  if (ALLIANCE_AWARDS.indexOf(a.type) !== -1) return base + (a.placement === 1 ? ' (captain)' : ' (' + ordinal(a.placement - 1) + ' pick)');
+  if (a.type === 'TopRanked') return 'Top Ranked, ' + ordinal(a.placement);
+  if (a.type === 'JudgesChoice' || !a.placement || a.placement === 1) return base;
+  return base + ', ' + ordinal(a.placement) + ' place';
+}
+function awardChips(awards, season) {
+  const counts = new Map();
+  awards.forEach(a => { const t = awardText(a, season); counts.set(t, (counts.get(t) || 0) + 1); });
+  return Array.from(counts).map(([t, c]) => '<span class="award">' + esc(t) + (c > 1 ? ' x' + c : '') + '</span>').join('');
 }
 
-async function scoutTeam(number) {
-  // Query 1: basic team info -- only fields confirmed valid on Team type
-  // (city/state are NOT on Team type per GraphQL validation error)
-  const INFO_QUERY = `
-    query($n: Int!) {
-      teamByNumber(number: $n) {
-        number
-        name
-        schoolName
-        rookieYear
-        location {
-          venue
-          city
-          state
-          country
-        }
-      }
-    }`;
+/* ================= Storage (this browser only) ================= */
 
-  const post = async (query, variables) => {
-    const r = await fetch('https://api.ftcscout.org/graphql', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({query, variables}),
-    });
-    if (!r.ok) {
-      const body = await r.text();
-      throw new Error(`HTTP ${r.status}: ${body.slice(0,300)}`);
-    }
-    return r.json();
-  };
+const K = { profile: 'ftcentral.profile', notes: 'ftcentral.notes', ratings: 'ftcRatings', names: 'ftcentral.teamNames', msgs: 'ftcentral.messages', region: 'ftcentral.region' };
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; } },
+  remove(key) { try { localStorage.removeItem(key); } catch (e) { /* storage blocked */ } }
+};
+const profile = () => { const p = store.get(K.profile, null); return p && p.name ? p : null; };
+function rememberName(n, name) {
+  if (!n || !name) return;
+  const names = store.get(K.names, {});
+  if (names[n] !== name) { names[n] = name; store.set(K.names, names); }
+}
 
-  // FTC Scout uses MatchScores2025 for INTO THE DEEP (2024-25 season ends 2025)
-  // We try 2025 first (as the FTC Scout Discord specified), then fall back to 2024
-  const makeStatsQuery = (scoreType) => `
-    query($n: Int!, $s: Int!) {
-      teamByNumber(number: $n) {
-        quickStats(season: $s) {
-          tot  { value rank }
-          auto { value rank }
-          dc   { value rank }
-          eg   { value rank }
-        }
-        matches(season: $s) {
-          alliance
-          match {
-            scores {
-              ... on ${scoreType} {
-                blue { totalPointsNp }
-                red  { totalPointsNp }
-              }
-            }
-          }
-        }
-      }
-    }`;
+/* ================= FTC Scout API ================= */
 
-  const [infoRes, statsRes] = await Promise.all([
-    post(INFO_QUERY, {n: number}),
-    // Try MatchScores2025 first; if it fails with a GraphQL error, try 2024
-    post(makeStatsQuery('MatchScores2026'), {n: number, s: SEASON})
-      .catch(() => post(makeStatsQuery('MatchScores2025'), {n: number, s: SEASON})),
-  ]);
+const API = 'https://api.ftcscout.org/graphql';
+const cache = new Map();
+class ApiError extends Error { constructor(kind, detail) { super(detail || kind); this.kind = kind; } }
 
-  const info  = infoRes.data?.teamByNumber;
-  const sData = statsRes.data?.teamByNumber;
-
-  if (!info) return null; // team not found
-
-  // Calculate W/L/T from matches array
-  let wins=0, losses=0, ties=0, highScore=null, totalPts=0, matchCount=0;
-  for (const m of (sData?.matches||[])) {
-    const sc = m.match?.scores;
-    if (!sc) continue;
-    const ours = m.alliance==='Red' ? sc.red?.totalPointsNp : sc.blue?.totalPointsNp;
-    const opp  = m.alliance==='Red' ? sc.blue?.totalPointsNp : sc.red?.totalPointsNp;
-    if (ours==null||opp==null) continue;
-    matchCount++;
-    totalPts += ours;
-    if (highScore===null||ours>highScore) highScore=ours;
-    if (ours>opp) wins++; else if (ours<opp) losses++; else ties++;
+function gql(query, variables, ttl) {
+  const key = query + '|' + JSON.stringify(variables || {});
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.t < (ttl || 300000)) return hit.p;
+  const p = (async () => {
+    if (location.protocol === 'file:') throw new ApiError('file');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20000);
+    let res;
+    try {
+      res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query, variables: variables || {} }), signal: ctrl.signal });
+    } catch (e) {
+      throw new ApiError(e && e.name === 'AbortError' ? 'timeout' : 'network');
+    } finally { clearTimeout(timer); }
+    let json;
+    try { json = await res.json(); } catch (e) { throw new ApiError('bad', 'HTTP ' + res.status); }
+    if (json.errors && json.errors.length) throw new ApiError('graphql', json.errors[0].message);
+    if (!res.ok) throw new ApiError('bad', 'HTTP ' + res.status);
+    return json.data;
+  })();
+  cache.set(key, { t: Date.now(), p });
+  p.catch(() => cache.delete(key));
+  return p;
+}
+function apiMessage(e) {
+  switch (e && e.kind) {
+    case 'file': return 'FTCentral was opened as a file, so FTC Scout blocks its requests. Open it from its web address instead: alex-8bit-dot.github.io/FTCentral';
+    case 'timeout': return 'FTC Scout took too long to answer. Try again in a moment.';
+    case 'network': return 'Could not reach FTC Scout. Check your internet connection and try again.';
+    case 'graphql': return 'FTC Scout could not answer that request (' + (e.message || 'unknown error') + ').';
+    default: return 'Something went wrong while talking to FTC Scout' + (e && e.message ? ' (' + e.message + ')' : '') + '.';
   }
+}
 
-  const qs = sData?.quickStats;
+const Q_TEAM_BASIC = `query TeamBasic($n: Int!, $s: Int!, $p: Int!) {
+  teamByNumber(number: $n) {
+    number name schoolName website rookieYear
+    location { city state country }
+    cur: events(season: $s) { event { regionCode } }
+    prev: events(season: $p) { event { regionCode } }
+  }
+}`;
+const Q_TEAM_SEARCH = `query TeamSearch($q: String) { teamsSearch(searchText: $q, limit: 8) { number name location { city state country } } }`;
+const Q_EVENTS = `query Events($s: Int!, $r: RegionOption, $start: Date) {
+  eventsSearch(season: $s, region: $r, start: $start) {
+    code name type start end remote regionCode liveStreamURL
+    location { venue city state country }
+  }
+}`;
+// Score and stat types are named per season (MatchScores2026, TeamEventStats2026...), so the query is built per season.
+const qTeamSeason = s => `query TeamSeason($n: Int!, $s: Int!) {
+  teamByNumber(number: $n) {
+    number name schoolName website rookieYear activeSeasons
+    location { city state country }
+    quickStats(season: $s) { tot { value rank } auto { value rank } dc { value rank } eg { value rank } count }
+    events(season: $s) {
+      eventCode
+      stats { ... on TeamEventStats${s} { rank wins losses ties opr { totalPointsNp } avg { totalPointsNp } } }
+      awards { type placement }
+      event { name type start end remote regionCode location { city state country } }
+    }
+    matches(season: $s) {
+      alliance surrogate noShow
+      match { hasBeenPlayed tournamentLevel scores { ... on MatchScores${s} { red { totalPoints totalPointsNp } blue { totalPoints totalPointsNp } } } }
+    }
+  }
+}`;
 
+const fetchTeamBasic = n => gql(Q_TEAM_BASIC, { n, s: CURRENT_SEASON, p: CURRENT_SEASON - 1 }).then(d => d.teamByNumber);
+const fetchTeamSeason = (n, s) => gql(qTeamSeason(s), { n, s }).then(d => d.teamByNumber);
+
+function teamRegion(t) {
+  if (!t) return null;
+  const tally = list => {
+    const c = {};
+    (list || []).forEach(e => { const r = e.event && e.event.regionCode; if (isRegion(r)) c[r] = (c[r] || 0) + 1; });
+    const best = Object.keys(c).sort((a, b) => c[b] - c[a])[0];
+    return best || null;
+  };
+  return tally(t.cur) || tally(t.prev);
+}
+
+// Turns one season of raw FTC Scout data into the numbers the page shows.
+// Wins and losses use the final score with penalties (that decides the match);
+// high and average use the score without penalties, like FTC Scout's records.
+function summarize(team, season) {
+  const today = todayStr();
+  const played = (team.matches || []).filter(m => m.match && m.match.hasBeenPlayed && m.match.scores && m.match.scores.red && m.match.scores.blue && !m.surrogate && !m.noShow);
+  const rec = { w: 0, l: 0, t: 0 }, quals = { w: 0, l: 0, t: 0 };
+  let high = null, sum = 0;
+  played.forEach(m => {
+    const sc = m.match.scores;
+    const us = m.alliance === 'Red' ? sc.red : sc.blue;
+    const them = m.alliance === 'Red' ? sc.blue : sc.red;
+    const r = us.totalPoints > them.totalPoints ? 'w' : us.totalPoints < them.totalPoints ? 'l' : 't';
+    rec[r]++;
+    if (m.match.tournamentLevel === 'Quals') quals[r]++;
+    high = high === null ? us.totalPointsNp : Math.max(high, us.totalPointsNp);
+    sum += us.totalPointsNp;
+  });
+  const all = (team.events || []).filter(e => e.event).map(e => ({
+    code: e.eventCode, name: e.event.name, type: e.event.type, start: e.event.start, end: e.event.end,
+    remote: e.event.remote, regionCode: e.event.regionCode, location: e.event.location,
+    stats: e.stats && e.stats.rank != null ? e.stats : null, awards: e.awards || []
+  }));
+  // Premier events list a parent event plus divisions. Hide an empty parent when its division is listed.
+  const events = all.filter(e => e.stats || e.awards.length || !all.some(o => o.code !== e.code && o.code.indexOf(e.code) === 0));
+  events.sort((a, b) => String(b.start || '').localeCompare(String(a.start || '')));
+  const upcoming = events.filter(e => String(e.end || e.start) >= today).sort((a, b) => String(a.start).localeCompare(String(b.start)));
   return {
-    number,
-    name:       info.name,
-    school:     expandSchoolName(info.schoolName) || null,
-    location:   info.location
-                  ? [info.location.city, info.location.state, info.location.country].filter(Boolean).join(', ')
-                  : null,
-    rookieYear: info.rookieYear || null,
-    season:     'DECODE (2025-2026)',
-    awards:     [],
-    recentEvents: [],
-    stats: qs ? {
-      totalOPR:     qs.tot?.value  ?? null,
-      totalOPRRank: qs.tot?.rank   ?? null,
-      autoOPR:      qs.auto?.value ?? null,
-      autoOPRRank:  qs.auto?.rank  ?? null,
-      dcOPR:        qs.dc?.value   ?? null,
-      dcOPRRank:    qs.dc?.rank    ?? null,
-      egOPR:        qs.eg?.value   ?? null,
-      egOPRRank:    qs.eg?.rank    ?? null,
-      highScore,
-      avgScore: matchCount>0 ? Math.round(totalPts/matchCount) : null,
-      wins, losses, ties,
-    } : null,
+    season, played: played.length, rec, quals, high,
+    avg: played.length ? sum / played.length : null,
+    qs: team.quickStats, events, upcoming,
+    awards: events.reduce((acc, e) => acc.concat(e.awards), []),
+    hasData: !!team.quickStats || played.length > 0
   };
 }
 
-let scoutData = null;
-let scoutNum  = null;
+/* ================= Router ================= */
 
-function renderScouting() {
-  const el = document.getElementById('page-scouting');
-  el.innerHTML = `
-  <div class="page fade-in">
-    <div class="lbl">Intelligence Module</div>
-    <h1 class="page-title">Team Scouting</h1>
-    <p class="page-sub">Real-time data for any of the 10,000+ FTC teams worldwide, pulled live from FTC Scout</p>
-    <div style="display:flex;gap:10px;max-width:500px;margin-bottom:32px">
-      <input id="scout-input" placeholder="Enter any team number (e.g. 6547)" onkeydown="if(event.key==='Enter')doScout()" style="flex:1">
-      <button class="btn btn-cyan" id="scout-btn" onclick="doScout()">Search</button>
-    </div>
-    <div id="scout-error" style="color:var(--red);margin-bottom:20px;font-size:14px;display:none"></div>
-    <div id="scout-loading" style="display:none">
-      <div class="card" style="max-width:520px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-          <div style="width:10px;height:10px;border-radius:50%;background:var(--cyan);animation:pulse 1.2s ease-in-out infinite"></div>
-          <span style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--cyan);letter-spacing:.08em" id="scout-status">Querying FTC Scout...</span>
-        </div>
-        <div class="shimmer"></div><div class="shimmer" style="width:70%"></div><div class="shimmer" style="width:85%"></div>
-      </div>
-    </div>
-    <div id="scout-result"></div>
-    <div id="scout-notes-section" style="display:none;margin-top:16px">
-      <div class="card">
-        <!-- Team Rating -->
-        <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
-          <div class="lbl" style="margin-bottom:12px" id="scout-rating-lbl">Team Rating</div>
-          <div style="display:flex;align-items:center;gap:16px">
-            <input type="range" id="team-rating" min="1" max="10" value="5"
-              oninput="updateRating(this.value)"
-              style="flex:1;height:6px;background:var(--bg3);border-radius:3px;border:none;padding:0;cursor:pointer;accent-color:var(--cyan)">
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-              <div id="rating-display" style="font-family:'Share Tech Mono',monospace;font-size:32px;color:var(--cyan);line-height:1;min-width:48px;text-align:center">5</div>
-              <div style="font-size:12px;color:var(--muted)">/10</div>
-            </div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--dim)">
-            <span>Weak</span><span>Average</span><span>Elite</span>
-          </div>
-          <div id="rating-label" style="margin-top:8px;font-size:13px;color:var(--muted);text-align:center"></div>
-          <button class="btn btn-cyan btn-sm" onclick="saveRatingBtn()" style="margin-top:10px">Save Rating</button>
-          <span id="rating-saved" style="color:var(--green);font-size:13px;margin-left:10px;display:none">&#10003; Saved!</span>
-        </div>
-        <div class="lbl" style="margin-bottom:10px" id="scout-notes-lbl">Scouting Notes</div>
-        <textarea id="scout-notes-input" rows="4" placeholder="Add your observations, strategy thoughts, alliance considerations..." style="resize:vertical"></textarea>
-        <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
-          <button class="btn btn-cyan btn-sm" onclick="saveNote()">Save Note</button>
-          <span id="note-saved" style="color:var(--green);font-size:13px;display:none">&#10003; Saved!</span>
-        </div>
-        <div id="note-display" style="display:none" class="note-box">
-          <div style="font-size:11px;color:var(--cyan);margin-bottom:4px;font-family:monospace">SAVED NOTE</div>
-          <div id="note-text"></div>
-        </div>
-      </div>
-    </div>
-  </div>`;
-  if (scoutData) renderScoutResult(scoutData);
+let renderToken = 0;
+let lastPage = null;
+let lastPath = null;
+let pendingQuery = '';
+const PAGES = { home: renderHome, dashboard: renderDashboard, scouting: renderScouting, events: renderEvents, messages: renderMessages, learning: renderLearning };
+const TITLES = { dashboard: 'Dashboard', scouting: 'Scout a team', events: 'BIOBUZZ events', messages: 'Messages', learning: 'Learning hub' };
+
+function route() {
+  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(p => { try { return decodeURIComponent(p); } catch (e) { return p; } });
+  const page = PAGES[parts[0]] ? parts[0] : 'home';
+  const token = ++renderToken;
+  $$('nav.tabs a').forEach(a => { if (a.dataset.page === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  renderMe();
+  document.title = page === 'home' ? 'FTCentral | FTC scouting, events and team tools' : TITLES[page] + ' | FTCentral';
+  PAGES[page](main, parts.slice(1), token);
+  const path = page + '/' + parts.slice(1).join('/');
+  if (lastPath !== path) window.scrollTo(0, 0);
+  if (lastPage !== page) main.focus({ preventScroll: true });
+  lastPage = page;
+  lastPath = path;
+}
+const live = token => token === renderToken;
+
+function renderMe() {
+  const p = profile();
+  const box = $('#me');
+  if (p) {
+    box.innerHTML = '<a class="me" href="#/home" title="Your profile"><span class="dot">' + esc(p.name.trim()[0].toUpperCase()) + '</span>' + esc(p.name) + (p.team ? ' <span class="num muted">' + esc(p.team) + '</span>' : '') + '</a>';
+  } else {
+    box.innerHTML = '<a class="me plain" href="#/home">Set up profile</a>';
+  }
 }
 
-async function doScout() {
-  const inp = document.getElementById('scout-input');
-  const num = parseInt(inp?.value);
-  if (!num||num<1) { showScoutError('Please enter a valid FTC team number.'); return; }
-  scoutNum = num;
+/* ================= Shared pieces ================= */
 
-  document.getElementById('scout-error').style.display='none';
-  document.getElementById('scout-loading').style.display='block';
-  document.getElementById('scout-result').innerHTML='';
-  document.getElementById('scout-notes-section').style.display='none';
-  document.getElementById('scout-btn').disabled=true;
-  document.getElementById('scout-btn').textContent='Searching...';
+const honeyHex = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 56 18v28L32 60 8 46V18z" fill="none" stroke="currentColor" stroke-width="5"/></svg>';
+const skeleton = (label, lines) => '<div class="loading"><span class="pulse"></span>' + esc(label) + '</div>' + Array.from({ length: lines || 4 }, (_, i) => '<div class="skel" style="width:' + [100, 72, 88, 56, 80][i % 5] + '%"></div>').join('');
+const errorBox = (msg, retryId) => '<div class="notice error" role="alert">' + esc(msg) + (retryId ? ' <button class="btn btn-ghost btn-sm" id="' + retryId + '" style="margin-left:8px">Try again</button>' : '') + '</div>';
+const extLink = (href, label, cls) => '<a class="' + (cls || 'btn btn-ghost btn-sm') + ' ext" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(label) + '</a>';
 
-  const statuses = ['Querying FTC Scout API...','Loading team profile...','Fetching season stats...','Reading match history...'];
-  let si=0;
-  const ticker = setInterval(()=>{ si=(si+1)%statuses.length; const s=document.getElementById('scout-status'); if(s)s.textContent=statuses[si]; },1800);
+function regionSelect(id, selected, includeMine) {
+  const p = profile();
+  let html = '<select id="' + id + '">';
+  if (includeMine && p && p.region && isRegion(p.region)) html += '<optgroup label="Your team"><option value="' + p.region + '">' + esc(REGION_NAMES[p.region]) + '</option></optgroup>';
+  REGION_GROUPS.forEach(([label, map]) => {
+    html += '<optgroup label="' + esc(label) + '">' + Object.keys(map).map(k => '<option value="' + k + '"' + (k === selected ? ' selected' : '') + '>' + esc(map[k]) + '</option>').join('') + '</optgroup>';
+  });
+  return html + '</select>';
+}
+function defaultRegion() {
+  const saved = store.get(K.region, null);
+  if (isRegion(saved)) return saved;
+  const p = profile();
+  if (p && isRegion(p.region)) return p.region;
+  return 'All';
+}
 
+/* ================= Home and profile ================= */
+
+function renderHome(el, args, token) {
+  const p = profile();
+  el.innerHTML = `
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="season-line">${honeyHex}${esc(seasonName(CURRENT_SEASON))} season, ${esc(SEASONS[CURRENT_SEASON][1])}</div>
+        <h1>Every FTC team's stats and every BIOBUZZ event, in one place.</h1>
+        <p class="lead">Look up any team's record, OPR and awards from FTC Scout, see which events are coming up near you, and keep ratings and notes for alliance selection. Made by FTC Team 27318, the MantaBots.</p>
+        <form class="lookup" id="heroForm" role="search" autocomplete="off">
+          <label class="sr" for="heroInput">Team number or name</label>
+          <input id="heroInput" placeholder="Team number or name" inputmode="search">
+          <button class="btn btn-primary" type="submit">Scout team</button>
+        </form>
+        <p class="try">Try <button type="button" data-try="27318">27318</button>, <button type="button" data-try="6547">6547</button> or <button type="button" data-try="Cobalt">Cobalt</button></p>
+      </div>
+      <div class="card" id="profileCard"></div>
+    </div>
+  </section>`;
+  const go = v => {
+    v = String(v || '').trim();
+    if (!v) return;
+    if (/^\d{1,6}$/.test(v)) location.hash = '#/scouting/' + v;
+    else { pendingQuery = v; location.hash = '#/scouting'; }
+  };
+  $('#heroForm').addEventListener('submit', e => { e.preventDefault(); go($('#heroInput').value); });
+  $$('[data-try]').forEach(b => b.addEventListener('click', () => go(b.dataset.try)));
+  if (p) profileSummary(); else profileForm();
+}
+
+function profileSummary() {
+  const p = profile();
+  const box = $('#profileCard');
+  const roles = { member: 'Student on a team', coach: 'Coach or mentor', other: 'FTC volunteer, alum or parent' };
+  box.innerHTML = `
+    <h2>Your profile</h2>
+    <dl class="profile-facts">
+      <dt>Name</dt><dd>${esc(p.name)}</dd>
+      <dt>Role</dt><dd>${esc(roles[p.role] || p.role)}</dd>
+      ${p.team ? '<dt>Team</dt><dd><a href="#/scouting/' + esc(p.team) + '">' + esc(p.team) + (p.teamName ? ', ' + esc(p.teamName) : '') + '</a></dd>' : ''}
+      ${p.region && REGION_NAMES[p.region] ? '<dt>Region</dt><dd>' + esc(REGION_NAMES[p.region]) + '</dd>' : ''}
+    </dl>
+    <div class="row">
+      <a class="btn btn-primary btn-sm" href="#/dashboard">Open dashboard</a>
+      <button class="btn btn-ghost btn-sm" id="editProfile">Edit profile</button>
+      <button class="btn btn-danger btn-sm" id="wipe">Delete my data</button>
+    </div>
+    <p class="small dim" style="margin-top:14px">Saved in this browser only. Delete my data removes your profile, ratings, notes and drafts from this device.</p>`;
+  $('#editProfile').addEventListener('click', profileForm);
+  const wipe = $('#wipe');
+  let armed = false;
+  wipe.addEventListener('click', () => {
+    if (!armed) { armed = true; wipe.textContent = 'Click again to delete everything'; setTimeout(() => { if (wipe.isConnected) { armed = false; wipe.textContent = 'Delete my data'; } }, 4000); return; }
+    Object.values(K).forEach(k => store.remove(k));
+    renderMe();
+    profileForm();
+  });
+}
+
+function profileForm() {
+  const p = profile() || {};
+  const box = $('#profileCard');
+  box.innerHTML = `
+    <h2>${p.name ? 'Edit your profile' : 'Set up your profile'}</h2>
+    <p class="small muted" style="margin:6px 0 16px">So your dashboard shows your team's events and stats first.</p>
+    <form id="profileForm" novalidate>
+      <label class="field"><span>First name or nickname</span><input id="pName" maxlength="40" value="${esc(p.name || '')}" autocomplete="given-name"></label>
+      <label class="field"><span>Your role</span>
+        <select id="pRole">
+          <option value="member"${p.role === 'member' ? ' selected' : ''}>Student on a team</option>
+          <option value="coach"${p.role === 'coach' ? ' selected' : ''}>Coach or mentor</option>
+          <option value="other"${p.role === 'other' ? ' selected' : ''}>FTC volunteer, alum or parent (no team)</option>
+        </select>
+      </label>
+      <label class="field" id="teamField"><span>FTC team number</span><input id="pTeam" inputmode="numeric" maxlength="6" value="${esc(p.team || '')}" placeholder="e.g. 27318"><span class="verify" id="pVerify" aria-live="polite"></span></label>
+      <div class="verify bad" id="pError" role="alert"></div>
+      <div class="row" style="margin-top:4px">
+        <button class="btn btn-primary" type="submit">Save profile</button>
+        ${p.name ? '<button class="btn btn-ghost" type="button" id="cancelEdit">Cancel</button>' : ''}
+      </div>
+      <p class="small dim" style="margin-top:14px">Saved in this browser only. FTCentral doesn't have accounts yet, so nothing here is sent anywhere. Your team number is checked against FTC Scout.</p>
+    </form>`;
+  let verified = p.team ? { team: String(p.team), name: p.teamName, region: p.region } : null;
+  const teamField = $('#teamField'), roleSel = $('#pRole'), teamIn = $('#pTeam'), vBox = $('#pVerify');
+  const syncRole = () => { teamField.hidden = roleSel.value === 'other'; };
+  roleSel.addEventListener('change', syncRole);
+  syncRole();
+  const check = async () => {
+    const v = teamIn.value.trim();
+    verified = null;
+    if (!v) { vBox.textContent = ''; return null; }
+    if (!/^\d{1,6}$/.test(v)) { vBox.innerHTML = '<span class="bad">Team numbers are digits only.</span>'; return null; }
+    vBox.innerHTML = '<span class="muted">Checking FTC Scout...</span>';
+    try {
+      const t = await fetchTeamBasic(+v);
+      if (teamIn.value.trim() !== v) return null;
+      if (!t) { vBox.innerHTML = '<span class="bad">No FTC team ' + esc(v) + ' on FTC Scout. Check the number.</span>'; return null; }
+      verified = { team: v, name: t.name, region: teamRegion(t) };
+      vBox.innerHTML = '<span class="ok">Found ' + esc(t.name) + (t.location && t.location.city ? ', ' + esc(locStr(t.location)) : '') + '</span>';
+      return verified;
+    } catch (e) {
+      vBox.innerHTML = '<span class="bad">' + esc(apiMessage(e)) + '</span>';
+      return null;
+    }
+  };
+  teamIn.addEventListener('input', debounce(check, 450));
+  if ($('#cancelEdit')) $('#cancelEdit').addEventListener('click', profileSummary);
+  $('#profileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const err = $('#pError');
+    err.textContent = '';
+    const name = $('#pName').value.trim();
+    const role = roleSel.value;
+    if (!name) { err.textContent = 'Add a first name or nickname.'; $('#pName').focus(); return; }
+    let team = '', teamName = '', region = null;
+    if (role !== 'other') {
+      const v = teamIn.value.trim();
+      if (!v) { err.textContent = 'Add your FTC team number, or pick the volunteer, alum or parent role.'; teamIn.focus(); return; }
+      const ok = (verified && verified.team === v) ? verified : await check();
+      if (!ok) { err.textContent = 'Fix the team number before saving.'; return; }
+      team = ok.team; teamName = ok.name || ''; region = ok.region || null;
+    }
+    store.set(K.profile, { name, role, team, teamName, region, savedAt: todayStr() });
+    renderMe();
+    location.hash = '#/dashboard';
+  });
+}
+
+/* ================= Dashboard ================= */
+
+function renderDashboard(el, args, token) {
+  const p = profile();
+  el.innerHTML = `
+  <section class="page"><div class="wrap">
+    <div class="page-head">
+      <h1>${p ? 'Hi ' + esc(p.name) : 'Dashboard'}</h1>
+      <p>The ${esc(seasonLabel(CURRENT_SEASON))} season is underway. ${p && p.team ? 'Here is what is coming up for Team ' + esc(p.team) + '.' : '<a href="#/home">Set up your profile</a> to see your own team here.'}</p>
+    </div>
+    <div class="grid-main">
+      <div class="stack">
+        <div class="card" id="dEvents"></div>
+        <div class="card" id="dTeam"></div>
+      </div>
+      <div class="stack">
+        <div class="card" id="dRes"></div>
+        <div class="card" id="dList"></div>
+      </div>
+    </div>
+  </div></section>`;
+  dashEvents(token);
+  dashTeam(token);
+  $('#dRes').innerHTML = '<h2 style="margin-bottom:12px">BIOBUZZ resources</h2>' + RESOURCES.season[1].slice(0, 6).map(r =>
+    '<a class="mini-ev" href="' + esc(r[3]) + '" target="_blank" rel="noopener" style="color:var(--text)"><span aria-hidden="true">' + r[0] + '</span><span class="ext">' + esc(r[1]) + '</span></a>').join('') +
+    '<p class="small" style="margin-top:12px"><a href="#/learning">All learning resources</a></p>';
+  $('#dList').innerHTML = scoutListHtml(5, true);
+  wireScoutList($('#dList'));
+}
+
+function dashEvents(token) {
+  const box = $('#dEvents');
+  const region = defaultRegion();
+  box.innerHTML = '<div class="card-head"><h2>Coming up</h2><label class="sr" for="dRegion">Region</label><div style="min-width:210px">' + regionSelect('dRegion', region, true) + '</div></div><div id="dEvList">' + skeleton('Loading events from FTC Scout') + '</div>';
+  $('#dRegion').addEventListener('change', e => { store.set(K.region, e.target.value); dashEvents(token); });
+  const list = $('#dEvList');
+  gql(Q_EVENTS, { s: CURRENT_SEASON, r: region, start: addDays(todayStr(), -7) }).then(d => {
+    if (!live(token) || !list.isConnected) return;
+    const t = todayStr();
+    const evs = (d.eventsSearch || []).filter(e => e.type !== 'VolunteerSignup' && String(e.end || e.start) >= t).sort((a, b) => a.start.localeCompare(b.start) || a.name.localeCompare(b.name));
+    if (!evs.length) { list.innerHTML = '<div class="empty"><h3>No upcoming events listed here yet</h3><p class="small">Try a bigger region, like United States or Worldwide.</p></div>'; return; }
+    const nextBig = evs.find(e => BIG_TYPES.indexOf(e.type) !== -1);
+    list.innerHTML = (nextBig ? '<div class="notice" style="margin-bottom:12px">Next qualifying event: <b>' + esc(nextBig.name) + '</b>, ' + esc(fmtRange(nextBig.start, nextBig.end)) + ' (' + esc(relDay(nextBig.start, nextBig.end).toLowerCase()) + ')</div>' : '') +
+      evs.slice(0, 6).map(e => '<div class="dash-ev"><div class="edate">' + esc(fmtDay(e.start, false)) + '<small>' + esc(relDay(e.start, e.end)) + '</small></div><div><a href="https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener">' + esc(e.name) + '</a><div class="small muted">' + esc(EVENT_TYPES[e.type] || e.type) + (locStr(e.location) ? ', ' + esc(locStr(e.location)) : '') + '</div></div></div>').join('') +
+      '<p class="small" style="margin-top:12px"><a href="#/events/' + encodeURIComponent(region) + '">See all ' + fmtInt(evs.length) + ' upcoming events in ' + esc(REGION_NAMES[region]) + '</a></p>';
+  }).catch(e => {
+    if (!live(token) || !list.isConnected) return;
+    list.innerHTML = errorBox(apiMessage(e), 'dEvRetry');
+    $('#dEvRetry').addEventListener('click', () => dashEvents(token));
+  });
+}
+
+function dashTeam(token) {
+  const box = $('#dTeam');
+  const p = profile();
+  if (!p || !p.team) {
+    box.innerHTML = '<h2>Your team</h2><div class="empty"><h3>No team on your profile</h3><p class="small" style="margin-bottom:14px">Add your team number to see its BIOBUZZ events and last season\'s results here.</p><a class="btn btn-primary btn-sm" href="#/home">Set up profile</a></div>';
+    return;
+  }
+  const n = +p.team;
+  box.innerHTML = '<h2 style="margin-bottom:14px">Team ' + esc(n) + (p.teamName ? ', ' + esc(p.teamName) : '') + '</h2>' + skeleton('Loading your team from FTC Scout', 3);
+  Promise.all([fetchTeamSeason(n, CURRENT_SEASON), fetchTeamSeason(n, CURRENT_SEASON - 1)]).then(([curT, prevT]) => {
+    if (!live(token) || !box.isConnected) return;
+    if (!curT) { box.innerHTML = '<h2>Your team</h2>' + errorBox('FTC Scout has no team ' + n + '. Edit your profile to fix the number.'); return; }
+    rememberName(n, curT.name);
+    const cur = summarize(curT, CURRENT_SEASON);
+    const prev = prevT ? summarize(prevT, CURRENT_SEASON - 1) : null;
+    let html = '<div class="profile-head" style="margin-bottom:10px"><div class="hex honey sm"><span>' + n + '</span></div><div><h2>' + esc(curT.name) + '</h2><div class="small muted">' + esc(cleanSchool(curT.schoolName)) + '</div></div></div>';
+    html += '<div class="sub">BIOBUZZ events</div>';
+    html += cur.upcoming.length ? cur.upcoming.map(e => '<div class="mini-ev"><span class="num">' + esc(fmtDay(e.start, false)) + '</span><span>' + esc(e.name) + ' <span class="dim small">' + esc(relDay(e.start, e.end).toLowerCase()) + '</span></span></div>').join('')
+      : '<p class="small muted">Not registered for any BIOBUZZ events on FTC Scout yet. Registrations appear here once FIRST publishes them.</p>';
+    if (cur.hasData) {
+      html += '<div class="sub">BIOBUZZ so far</div><p class="small">' + cur.rec.w + '-' + cur.rec.l + '-' + cur.rec.t + ' in ' + cur.played + ' matches' + (cur.qs ? ', total OPR ' + cur.qs.tot.value.toFixed(1) + ' (#' + fmtInt(cur.qs.tot.rank) + ' of ' + fmtInt(cur.qs.count) + ')' : '') + '</p>';
+    } else if (prev && prev.hasData) {
+      html += '<div class="sub">Last season, ' + esc(seasonLabel(prev.season)) + '</div><p class="small">' + prev.rec.w + '-' + prev.rec.l + '-' + prev.rec.t + ' in ' + prev.played + ' matches' + (prev.qs ? ', total OPR ' + prev.qs.tot.value.toFixed(1) + ', ranked #' + fmtInt(prev.qs.tot.rank) + ' of ' + fmtInt(prev.qs.count) + ' worldwide' : '') + '</p>' + (prev.awards.length ? '<div class="awards">' + awardChips(prev.awards, prev.season) + '</div>' : '');
+    }
+    html += '<div class="links"><a class="btn btn-primary btn-sm" href="#/scouting/' + n + '">Full scouting report</a></div>';
+    box.innerHTML = html;
+  }).catch(e => {
+    if (!live(token) || !box.isConnected) return;
+    box.innerHTML = '<h2 style="margin-bottom:12px">Your team</h2>' + errorBox(apiMessage(e), 'dTeamRetry');
+    $('#dTeamRetry').addEventListener('click', () => dashTeam(token));
+  });
+}
+
+/* ================= Scouting ================= */
+
+function renderScouting(el, args, token) {
+  const n = args[0] && /^\d{1,6}$/.test(args[0]) ? +args[0] : null;
+  const s = args[1] && SEASONS[+args[1]] && +args[1] >= MIN_STATS_SEASON ? +args[1] : null;
+  const q = n ? String(n) : pendingQuery;
+  pendingQuery = '';
+  el.innerHTML = `
+  <section class="page"><div class="wrap">
+    <div class="page-head">
+      <h1>Scout a team</h1>
+      <p>Record, OPR, awards and events for any FTC team, straight from FTC Scout. Your ratings and notes stay on this device.</p>
+    </div>
+    <form class="searchbar" id="scoutForm" role="search" autocomplete="off">
+      <label class="sr" for="scoutInput">Team number or name</label>
+      <input id="scoutInput" placeholder="Team number or name, like 27318 or Cobalt" value="${esc(q)}" aria-autocomplete="list" aria-controls="suggest">
+      <button class="btn btn-primary" type="submit">Search</button>
+      <div class="suggest" id="suggest" hidden></div>
+    </form>
+    <div id="scoutResult" aria-live="polite"></div>
+    <div class="card" id="scoutList" style="margin-top:20px"></div>
+  </div></section>`;
+  wireSearch(token);
+  const listBox = $('#scoutList');
+  listBox.innerHTML = scoutListHtml(0, false);
+  if (!listBox.innerHTML) listBox.remove(); else wireScoutList(listBox);
+  if (n) loadScout(n, s, token);
+  else if (q) runNameSearch(q, token);
+}
+
+function wireSearch(token) {
+  const form = $('#scoutForm'), input = $('#scoutInput'), sug = $('#suggest');
+  const hide = () => { sug.hidden = true; };
+  const showResults = (teams, query) => {
+    if (!teams.length) { sug.innerHTML = '<div class="empty small">No team names match "' + esc(query) + '".</div>'; sug.hidden = false; return; }
+    sug.innerHTML = teams.slice(0, 8).map(t => '<button type="button" data-n="' + t.number + '"><span class="num">' + t.number + '</span><span><b>' + esc(t.name) + '</b><br><span class="small muted">' + esc(locStr(t.location)) + '</span></span></button>').join('');
+    sug.hidden = false;
+    $$('button', sug).forEach(b => b.addEventListener('click', () => { hide(); location.hash = '#/scouting/' + b.dataset.n; }));
+  };
+  const search = debounce(async v => {
+    if (!live(token)) return;
+    if (v.length < 2 || /^\d+$/.test(v)) { hide(); return; }
+    try {
+      const d = await gql(Q_TEAM_SEARCH, { q: v });
+      if (!live(token) || input.value.trim() !== v) return;
+      showResults(d.teamsSearch || [], v);
+    } catch (e) { if (live(token)) { sug.innerHTML = '<div class="empty small">' + esc(apiMessage(e)) + '</div>'; sug.hidden = false; } }
+  }, 350);
+  input.addEventListener('input', () => {
+    const v = input.value.trim();
+    // FTC Scout can take a second or two to answer a name search, so say so right away.
+    if (v.length >= 2 && !/^\d+$/.test(v) && (sug.hidden || !$('button[data-n]', sug))) {
+      sug.innerHTML = '<div class="empty small">Searching FTC Scout...</div>';
+      sug.hidden = false;
+    }
+    search(v);
+  });
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+  const onDocClick = e => {
+    if (!form.isConnected) { document.removeEventListener('click', onDocClick); return; }
+    if (!form.contains(e.target)) hide();
+  };
+  document.addEventListener('click', onDocClick);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const v = input.value.trim();
+    if (!v) return;
+    if (/^\d{1,6}$/.test(v)) { hide(); if (location.hash === '#/scouting/' + v) route(); else location.hash = '#/scouting/' + v; return; }
+    const first = $('button[data-n]', sug);
+    if (!sug.hidden && first) { hide(); location.hash = '#/scouting/' + first.dataset.n; return; }
+    runNameSearch(v, token);
+  });
+}
+
+async function runNameSearch(v, token) {
+  const sug = $('#suggest');
+  if (!sug) return;
+  sug.innerHTML = '<div class="empty small">Searching FTC Scout...</div>';
+  sug.hidden = false;
   try {
-    const data = await scoutTeam(num);
-    clearInterval(ticker);
-    document.getElementById('scout-loading').style.display='none';
-    document.getElementById('scout-btn').disabled=false;
-    document.getElementById('scout-btn').textContent='Search';
+    const d = await gql(Q_TEAM_SEARCH, { q: v });
+    if (!live(token)) return;
+    const teams = d.teamsSearch || [];
+    if (teams.length === 1) { location.hash = '#/scouting/' + teams[0].number; return; }
+    if (!teams.length) { sug.innerHTML = '<div class="empty small">No team names match "' + esc(v) + '". Try the team number.</div>'; return; }
+    sug.innerHTML = teams.slice(0, 8).map(t => '<button type="button" data-n="' + t.number + '"><span class="num">' + t.number + '</span><span><b>' + esc(t.name) + '</b><br><span class="small muted">' + esc(locStr(t.location)) + '</span></span></button>').join('');
+    $$('button', sug).forEach(b => b.addEventListener('click', () => { sug.hidden = true; location.hash = '#/scouting/' + b.dataset.n; }));
+  } catch (e) { if (live(token)) sug.innerHTML = '<div class="empty small">' + esc(apiMessage(e)) + '</div>'; }
+}
 
-    if (!data) {
-      showScoutError(`Team #${num} was not found on FTC Scout. Check the team number.`);
+async function loadScout(n, explicitSeason, token) {
+  const box = $('#scoutResult');
+  box.innerHTML = '<div class="card" style="margin-top:22px">' + skeleton('Looking up team ' + n + ' on FTC Scout', 5) + '</div>';
+  try {
+    const second = explicitSeason && explicitSeason !== CURRENT_SEASON ? explicitSeason : (explicitSeason ? null : CURRENT_SEASON - 1);
+    const [curT, otherT] = await Promise.all([fetchTeamSeason(n, CURRENT_SEASON), second ? fetchTeamSeason(n, second) : Promise.resolve(null)]);
+    if (!live(token)) return;
+    if (!curT) {
+      box.innerHTML = '<div class="card" style="margin-top:22px"><div class="empty"><h3>No FTC team ' + n + '</h3><p class="small">FTC Scout doesn\'t have a team with that number. Check the number, or search by team name.</p></div></div>';
       return;
     }
-    scoutData = data;
-    renderScoutResult(data);
-
-    // Notes
-    document.getElementById('scout-notes-section').style.display='block';
-    document.getElementById('scout-notes-lbl').textContent=`Scouting Notes -- Team #${num}`;
-    document.getElementById('scout-rating-lbl').textContent=`Team Rating -- Team #${num}`;
-    const saved = scoutNotes[num];
-    if (saved) {
-      document.getElementById('scout-notes-input').value = saved;
-      document.getElementById('note-text').textContent = saved;
-      document.getElementById('note-display').style.display='block';
+    rememberName(n, curT.name);
+    const cur = summarize(curT, CURRENT_SEASON);
+    let shown = cur, note = null;
+    if (explicitSeason && explicitSeason !== CURRENT_SEASON) {
+      shown = summarize(otherT || { matches: [], events: [] }, explicitSeason);
+    } else if (!explicitSeason && !cur.hasData) {
+      const prev = otherT ? summarize(otherT, CURRENT_SEASON - 1) : null;
+      if (prev && prev.hasData) {
+        shown = prev;
+        note = '<b>' + esc(curT.name) + '</b> hasn\'t played a ' + esc(seasonName(CURRENT_SEASON)) + ' match yet. Showing ' + esc(seasonLabel(prev.season)) + ', their most recent season.';
+      } else {
+        const older = (curT.activeSeasons || []).filter(x => x < CURRENT_SEASON - 1 && x >= MIN_STATS_SEASON).sort((a, b) => b - a)[0];
+        if (older) {
+          const oT = await fetchTeamSeason(n, older);
+          if (!live(token)) return;
+          const o = oT ? summarize(oT, older) : null;
+          if (o && o.hasData) {
+            shown = o;
+            note = '<b>' + esc(curT.name) + '</b> hasn\'t played a ' + esc(seasonName(CURRENT_SEASON)) + ' match yet and played no ' + esc(seasonName(CURRENT_SEASON - 1)) + ' matches. Showing ' + esc(seasonLabel(older)) + ', their most recent season.';
+          }
+        }
+        if (!note) note = '<b>' + esc(curT.name) + '</b> has no matches on FTC Scout from ' + esc(seasonName(MIN_STATS_SEASON)) + ' onward. They may be new this season.';
+      }
     }
-    // Load saved rating
-    const savedRating = teamRatings[num] || 5;
-    const slider = document.getElementById('team-rating');
-    if (slider) { slider.value = savedRating; updateRating(savedRating); }
-  } catch(e) {
-    clearInterval(ticker);
-    document.getElementById('scout-loading').style.display='none';
-    document.getElementById('scout-btn').disabled=false;
-    document.getElementById('scout-btn').textContent='Search';
-    showScoutError(`Error: ${e.message}. Make sure you're running this file in a browser (not inside Claude).`);
+    box.innerHTML = resultHtml(curT, cur, shown, note);
+    wireRating(n);
+    wireNotes(n);
+  } catch (e) {
+    if (!live(token)) return;
+    box.innerHTML = '<div style="margin-top:22px">' + errorBox(apiMessage(e), 'scoutRetry') + '</div>';
+    $('#scoutRetry').addEventListener('click', () => { cache.clear(); loadScout(n, explicitSeason, token); });
   }
 }
 
-function showScoutError(msg) {
-  const el = document.getElementById('scout-error');
-  el.textContent='⚠ '+msg;
-  el.style.display='block';
+function seasonChips(team, shownSeason) {
+  const set = new Set((team.activeSeasons || []).filter(s => s >= MIN_STATS_SEASON && SEASONS[s]));
+  set.add(CURRENT_SEASON);
+  set.add(shownSeason);
+  const list = Array.from(set).sort((a, b) => b - a);
+  const older = (team.activeSeasons || []).some(s => s < MIN_STATS_SEASON);
+  return '<div class="season-bar" role="group" aria-label="Season"><span>Season</span>' + list.map(s =>
+    '<a class="chip' + (s === CURRENT_SEASON ? ' now' : '') + '" href="#/scouting/' + team.number + '/' + s + '"' + (s === shownSeason ? ' aria-current="true"' : '') + '>' + esc(seasonName(s)) + '</a>').join('') +
+    (older ? '<a class="small ext" href="https://ftcscout.org/teams/' + team.number + '" target="_blank" rel="noopener" style="margin-left:6px">Older seasons</a>' : '') + '</div>';
 }
 
-function pct(val,max){ return val==null?0:Math.min(100,Math.round((val/max)*100)); }
-
-function renderScoutResult(data) {
-  const el = document.getElementById('scout-result');
-  if (!el) return;
-  el.className='fade-in';
-
-  const statsHtml = data.stats ? `
-    <div class="stat-strip">
-      ${[['W',data.stats.wins,'var(--green)'],['L',data.stats.losses,'var(--red)'],['T',data.stats.ties??0,'var(--muted)'],['High',data.stats.highScore,'var(--cyan)']].map(([l,v,c])=>`
-        <div class="stat-box"><div class="stat-num" style="color:${c}">${v??'-'}</div><div class="stat-lbl">${l}</div></div>`).join('')}
-    </div>
-    ${[['Total OPR',data.stats.totalOPR,data.stats.totalOPRRank,320],['Auto OPR',data.stats.autoOPR,data.stats.autoOPRRank,80],['Driver Ctrl',data.stats.dcOPR,data.stats.dcOPRRank,200],['End Game',data.stats.egOPR,data.stats.egOPRRank,50]].map(([lbl,val,rank,max])=>val!=null?`
-      <div style="margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-          <span style="font-size:13px;color:var(--muted)">${lbl}</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span style="font-family:'Share Tech Mono',monospace;color:var(--cyan);font-size:15px">${typeof val==='number'?val.toFixed(1):val}</span>
-            ${rank!=null?`<span style="font-size:11px;color:var(--dim);background:var(--bg2);border-radius:4px;padding:1px 6px">#${rank} world</span>`:''}
-          </div>
-        </div>
-        <div class="pbar-wrap"><div class="pbar-fill" style="width:${pct(val,max)}%"></div></div>
-      </div>`:''
-    ).join('')}
-    ${data.stats.avgScore!=null?`<div style="padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Avg Match Score</span><span style="font-family:'Share Tech Mono',monospace;color:var(--cyan)">${data.stats.avgScore}</span></div>`:''}
-  ` : `
-    <div style="background:var(--bg2);border-radius:8px;padding:20px;text-align:center">
-      <div style="font-size:28px;margin-bottom:10px">🔭</div>
-      <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:6px">No stats yet for DECODE</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">This team has not competed in the 2025-2026 DECODE season yet. Click below for previous seasons.</div>
-      <a href="https://ftcscout.org/teams/${data.number}" target="_blank" class="btn btn-cyan btn-sm" style="text-decoration:none">View on FTC Scout &rarr;</a>
-    </div>`;
-
-  const eventsHtml = data.recentEvents?.length>0 ? `
-    <div class="card full-col">
-      <div class="lbl" style="margin-bottom:14px">Events This Season</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
-        ${data.recentEvents.map(ev=>`
-          <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:8px;padding:12px 16px">
-            <div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:6px">${ev.name}</div>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px">
-              ${ev.date?`<span style="color:var(--orange);font-family:monospace">${ev.date}</span>`:''}
-              ${ev.loc?`<span style="color:var(--muted)">${ev.loc}</span>`:''}
-              ${ev.rank!=null?`<span style="color:var(--muted)">Rank <span style="color:var(--cyan);font-family:monospace">#${ev.rank}</span></span>`:''}
-              ${ev.record?`<span style="color:var(--muted)">Record <span style="color:var(--green);font-family:monospace">${ev.record}</span></span>`:''}
-            </div>
-          </div>`).join('')}
-      </div>
-    </div>` : '';
-
-  el.innerHTML = `
-  <div class="two-col">
-    <div class="card" style="border-color:var(--border-hi);display:flex;flex-direction:column;gap:0">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-        <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-weight:700;font-size:13px;color:var(--bg0);flex-shrink:0;text-align:center;padding:4px;line-height:1.2">
-          #${data.number}
-        </div>
-        <div>
-          <div style="font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--cyan);letter-spacing:.12em;margin-bottom:3px">TEAM PROFILE</div>
-          <div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.2">${data.name}</div>
-        </div>
-      </div>
-      <div class="info-block">
-        ${[['🏫','School',data.school],['📍','Location',data.location],['📅','Rookie Year',data.rookieYear?String(data.rookieYear):null],['🏆','Season',data.season]].filter(([,,v])=>v!=null).map(([icon,lbl,val],i,arr)=>`
-          <div class="info-row" ${i===arr.length-1?'style="border-bottom:none"':''}>
-            <span class="info-icon">${icon}</span>
-            <span class="info-lbl">${lbl}</span>
-            <span class="info-val">${val}</span>
-          </div>`).join('')}
-      </div>
-      ${data.awards?.length>0?`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--orange);font-family:monospace;letter-spacing:.1em;margin-bottom:6px">AWARDS</div><div>${data.awards.map(a=>`<span class="award-tag">${a}</span>`).join('')}</div></div>`:''}
-      <div style="margin-top:auto;padding-top:4px">
-        <div style="font-size:11px;color:var(--dim);font-family:monospace;letter-spacing:.08em;margin-bottom:8px">VIEW LIVE DATA</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <a href="https://ftcscout.org/teams/${data.number}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🔭 FTC Scout &rarr;</a>
-          <a href="https://ftcvideos.org/team/${data.number}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🎥 Videos &rarr;</a>
-          <a href="https://ftcbonfire.app/team/${data.number}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🔥 Bonfire &rarr;</a>
-        </div>
-      </div>
-    </div>
+function resultHtml(team, cur, shown, note) {
+  const n = team.number, s = shown.season;
+  const site = safeUrl(team.website);
+  const school = cleanSchool(team.schoolName);
+  const facts = [
+    ['School', school ? esc(school) : null],
+    ['Location', locStr(team.location) ? esc(locStr(team.location)) : null],
+    ['Rookie year', team.rookieYear ? esc(team.rookieYear) : null],
+    ['Website', site ? '<a class="ext" href="' + esc(site) + '" target="_blank" rel="noopener">' + esc(domainOf(site)) + '</a>' : null]
+  ].filter(f => f[1]);
+  const upcoming = cur.upcoming;
+  const profileCard = `
     <div class="card">
-      <div class="lbl" style="margin-bottom:16px">Season Performance</div>
-      ${statsHtml}
-    </div>
-    ${eventsHtml}
-  </div>`;
-}
-
-function saveNote() {
-  const val = document.getElementById('scout-notes-input')?.value;
-  if (!val?.trim()||!scoutNum) return;
-  scoutNotes[scoutNum] = val.trim();
-  document.getElementById('note-text').textContent = val.trim();
-  document.getElementById('note-display').style.display='block';
-  const saved = document.getElementById('note-saved');
-  saved.style.display='inline';
-  setTimeout(()=>saved.style.display='none', 2000);
-}
-
-const RATING_LABELS = {
-  1:'Very weak -- avoid in alliance',
-  2:'Below average',
-  3:'Developing team',
-  4:'Slightly below average',
-  5:'Average competitor',
-  6:'Solid team',
-  7:'Strong competitor',
-  8:'Top-tier team',
-  9:'Elite -- prioritize in alliance',
-  10:'World-class team'
-};
-
-function updateRating(val) {
-  const display = document.getElementById('rating-display');
-  const label   = document.getElementById('rating-label');
-  if (display) display.textContent = val;
-  if (label)   label.textContent   = RATING_LABELS[val] || '';
-  // Color based on rating
-  const colors = {1:'#FF6B6B',2:'#FF6B6B',3:'#FF9F43',4:'#FF9F43',5:'#FFB930',6:'#FFB930',7:'#00C896',8:'#00C896',9:'#00E5FF',10:'#00E5FF'};
-  if (display) display.style.color = colors[val] || 'var(--cyan)';
-}
-
-function saveRatingBtn() {
-  const slider = document.getElementById('team-rating');
-  if (!slider || !scoutNum) return;
-  saveRating(scoutNum, parseInt(slider.value));
-  const saved = document.getElementById('rating-saved');
-  saved.style.display='inline';
-  setTimeout(()=>saved.style.display='none', 2000);
-}
-
-// ─── LEARNING ────────────────────────────────────────────────────────────────
-const RESOURCES = {
-  'Official': [
-    {icon:'📖',title:'FTC Game Manual Part 1',desc:'Rules, eligibility, and tournament structure',url:'https://www.firstinspires.org/robotics/ftc/game-and-season'},
-    {icon:'📖',title:'FTC Game Manual Part 2',desc:'Scoring, field setup, and game-specific rules',url:'https://www.firstinspires.org/robotics/ftc/game-and-season'},
-    {icon:'🌐',title:'FIRST Tech Challenge Website',desc:'Official FTC news, registration, and resources',url:'https://www.firstinspires.org/robotics/ftc'},
-    {icon:'📅',title:'FTC Events Portal',desc:'Find qualifiers, regionals, and championships near you',url:'https://ftc-events.firstinspires.org'},
-  ],
-  'Programming': [
-    {icon:'☕',title:'FTC Java SDK (GitHub)',desc:'Official SDK with Java examples and OpMode templates',url:'https://github.com/FIRST-Tech-Challenge/FtcRobotController'},
-    {icon:'🔧',title:'REV Robotics Documentation',desc:'Control Hub, Expansion Hub, and hardware guides',url:'https://docs.revrobotics.com'},
-    {icon:'💡',title:'FTC Programming Resources',desc:'Official Java and Blocks tutorials for FTC',url:'https://ftc-docs.firstinspires.org/en/latest/programming_resources/'},
-    {icon:'🎮',title:'Game Manual Zero',desc:"Community plain-English guide to FTC engineering",url:'https://gm0.org'},
-    {icon:'🤖',title:'Road Runner Library',desc:'Advanced autonomous motion planning for FTC',url:'https://learnroadrunner.com'},
-    {icon:'📐',title:'MeepMeep Visualizer',desc:'Visualize Road Runner paths before writing code',url:'https://github.com/NoahBres/MeepMeep'},
-  ],
-  'Scouting': [
-    {icon:'🔭',title:'FTC Scout',desc:'Live stats, OPR, world rankings, and full match history',url:'https://ftcscout.org'},
-    {icon:'🔥',title:'FTC Bonfire',desc:'Deep performance analytics and team comparisons',url:'https://ftcbonfire.app'},
-    {icon:'🎥',title:'FTC Videos',desc:'Watch match footage from every FTC event worldwide',url:'https://ftcvideos.org'},
-  ],
-  'Design / CAD': [
-    {icon:'🔩',title:'OnShape FTC Tutorial',desc:'Free browser-based CAD widely used in FTC',url:'https://learn.onshape.com'},
-    {icon:'📦',title:'GoBilda Part Library',desc:'CAD models for GoBilda motors, servos, and structural',url:'https://www.gobilda.com/cad/'},
-    {icon:'🏗️',title:'REV Design Resources',desc:'CAD files and design guides from REV Robotics',url:'https://www.revrobotics.com/resources/'},
-  ],
-};
-let learnTab = 'Official';
-
-function renderLearning() {
-  const el = document.getElementById('page-learning');
-  el.innerHTML = `
-  <div class="page fade-in">
-    <div class="lbl">Knowledge Base</div>
-    <h1 class="page-title">Learning Hub</h1>
-    <p class="page-sub">FTC rules, Java programming, scouting tools, and design resources -- curated by the Mantabots</p>
-    <div class="tab-bar">
-      ${Object.keys(RESOURCES).map(cat=>`<button class="tab ${learnTab===cat?'active':''}" onclick="switchLearnTab('${cat}')">${cat}</button>`).join('')}
-    </div>
-    <div id="learn-items"></div>
-    <div style="margin-top:40px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:8px;padding:16px 20px">
-      <div style="font-weight:600;color:var(--orange);margin-bottom:6px">Want to contribute a resource?</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6">
-        Have a guide or tool that helped your team? Email the Mantabots at <a href="mailto:mantabots@fasny.com">mantabots@fasny.com</a> and we will add it to the hub.
+      <div class="profile-head">
+        <div class="hex${s === CURRENT_SEASON ? ' honey' : ''}"><span>${n}</span></div>
+        <div><h2>${esc(team.name)}</h2><div class="small muted">Team ${n}</div></div>
       </div>
-    </div>
-  </div>`;
-  renderLearnItems();
-}
-
-function switchLearnTab(cat) {
-  learnTab = cat;
-  document.querySelectorAll('.tab-bar .tab').forEach(t=>t.classList.toggle('active',t.textContent===cat));
-  renderLearnItems();
-}
-
-function renderLearnItems() {
-  const el = document.getElementById('learn-items');
-  if (!el) return;
-  el.innerHTML = (RESOURCES[learnTab]||[]).map(item=>`
-    <a href="${item.url}" target="_blank" class="rlink">
-      <div class="rlink-icon">${item.icon}</div>
-      <div style="flex:1">
-        <div style="font-weight:600;font-size:14px;color:var(--text)">${item.title}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">${item.desc}</div>
+      <dl class="facts">${facts.map(f => '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>').join('')}</dl>
+      ${shown.awards.length ? '<div class="sub">Awards in ' + esc(seasonLabel(s)) + '</div><div class="awards">' + awardChips(shown.awards, s) + '</div>' : ''}
+      <div class="sub">${esc(seasonName(CURRENT_SEASON))} events</div>
+      ${upcoming.length ? upcoming.map(e => '<div class="mini-ev"><span class="num">' + esc(fmtDay(e.start, false)) + '</span><a href="https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener" style="color:var(--text)">' + esc(e.name) + '</a></div>').join('')
+        : '<p class="small muted">No ' + esc(seasonName(CURRENT_SEASON)) + ' events registered on FTC Scout yet.</p>'}
+      <div class="links">
+        ${extLink('https://ftcscout.org/teams/' + n + '?season=' + s, 'FTC Scout page')}
+        ${extLink('https://ftcvideos.org/?search=' + n, 'Match videos')}
+        ${extLink('https://ftc-events.firstinspires.org/' + s + '/team/' + n, 'Official FIRST results')}
+        <a class="btn btn-ghost btn-sm" href="#/messages/${n}">Message team</a>
       </div>
-      <div style="color:var(--cyan);font-size:14px;flex-shrink:0">&#8599;</div>
-    </a>`).join('');
+    </div>`;
+  return `
+    ${seasonChips(team, s)}
+    ${note ? '<div class="notice" style="margin-bottom:16px">' + note + '</div>' : ''}
+    <div class="grid2">
+      ${profileCard}
+      ${perfHtml(shown, team)}
+      ${eventsHtml(shown)}
+      ${ratingCardHtml(n)}
+    </div>`;
 }
 
-// ─── REGISTER ────────────────────────────────────────────────────────────────
-let registeredTeams = [
-  {number:27318,name:'Mantabots',     school:'FASNY',           city:'Mamaroneck',   state:'NY'},
-  {number:8801, name:'Iron Giants',   school:'Westchester HS',  city:'White Plains', state:'NY'},
-  {number:12345,name:'Cyber Eagles',  school:'Brooklyn Tech',   city:'Brooklyn',     state:'NY'},
-];
-
-function renderRegister() {
-  const el = document.getElementById('page-register');
-  el.innerHTML = `
-  <div class="page fade-in">
-    <div class="lbl">Team Registry</div>
-    <h1 class="page-title">Register Your Team</h1>
-    <p class="page-sub">Join the FTCentral network so other teams can find and collaborate with you</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start">
-      <div class="card">
-        <div class="lbl" style="margin-bottom:18px">New Registration</div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          ${[['Team Number *','reg-num','e.g. 27318'],['Team Name *','reg-name','e.g. Mantabots'],['School / Org *','reg-school','e.g. FASNY']].map(([l,id,ph])=>`
-            <div>
-              <div style="font-size:12px;color:var(--muted);margin-bottom:5px">${l}</div>
-              <input id="${id}" placeholder="${ph}" onkeydown="if(event.key==='Enter')doRegister()">
-            </div>`).join('')}
-          <div style="display:grid;grid-template-columns:1fr 80px;gap:10px">
-            <div><div style="font-size:12px;color:var(--muted);margin-bottom:5px">City</div><input id="reg-city" placeholder="e.g. New York"></div>
-            <div><div style="font-size:12px;color:var(--muted);margin-bottom:5px">State</div><input id="reg-state" placeholder="NY"></div>
-          </div>
-          <div id="reg-err" style="color:var(--red);font-size:13px;display:none"></div>
-          <div id="reg-ok"  style="color:var(--green);font-size:13px;display:none">&#10003; Team registered!</div>
-          <button class="btn btn-orange" style="width:100%;justify-content:center" onclick="doRegister()">Register Team</button>
-        </div>
+function perfHtml(sum, team) {
+  const s = sum.season;
+  if (!sum.hasData) {
+    return '<div class="card"><h2>' + esc(seasonLabel(s)) + '</h2><div class="empty"><h3>No ' + esc(seasonName(s)) + ' matches yet</h3><p class="small">' + (s === CURRENT_SEASON ? 'Stats show up here after this team plays its first BIOBUZZ event.' : 'This team played no matches that season.') + '</p></div></div>';
+  }
+  const r = sum.rec, q = sum.quals, qs = sum.qs;
+  const bar = (label, st) => {
+    if (!st || st.value == null || !qs.count) return '';
+    const width = Math.max(3, Math.round((1 - (st.rank - 1) / qs.count) * 100));
+    const top = Math.max(1, Math.ceil((st.rank / qs.count) * 100));
+    return '<div><div class="bar-top"><span>' + label + '</span><span><span class="val">' + st.value.toFixed(1) + '</span> <span class="rank">#' + fmtInt(st.rank) + ' of ' + fmtInt(qs.count) + ', top ' + top + '%</span></span></div><div class="track"><div class="fill" style="width:' + width + '%"></div></div></div>';
+  };
+  return `
+    <div class="card">
+      <h2 style="margin-bottom:14px">${esc(seasonLabel(s))}</h2>
+      <div class="wlt">
+        <div><b style="color:var(--green)">${r.w}</b><span>Wins</span></div>
+        <div><b style="color:var(--red)">${r.l}</b><span>Losses</span></div>
+        <div><b style="color:var(--muted)">${r.t}</b><span>Ties</span></div>
+        <div><b style="color:var(--cyan)">${sum.high == null ? '-' : sum.high}</b><span>High score</span></div>
       </div>
-      <div>
-        <div class="lbl" style="margin-bottom:14px">Registered Teams -- <span style="color:var(--cyan)" id="team-count"></span></div>
-        <div id="team-list"></div>
-      </div>
-    </div>
-  </div>`;
-  renderTeamList();
+      <p class="record-line">${r.w}-${r.l}-${r.t} overall in ${sum.played} matches, ${q.w}-${q.l}-${q.t} in qualification matches.</p>
+      ${qs ? '<div class="bars">' + bar('Total OPR', qs.tot) + bar('Auto', qs.auto) + bar('TeleOp', qs.dc) + bar('Endgame', qs.eg) + '</div>' : '<p class="small muted" style="margin-top:12px">FTC Scout hasn\'t calculated OPR for this team this season yet.</p>'}
+      ${sum.avg != null ? '<div class="avg"><span>Average alliance score</span><b>' + sum.avg.toFixed(1) + '</b></div>' : ''}
+      <p class="explain">OPR estimates how many points a team adds to its alliance, using each team's best event. Ranks compare every team with stats this season. Scores leave out penalty points.</p>
+    </div>`;
 }
 
-function renderTeamList() {
-  const el = document.getElementById('team-list');
-  const cnt = document.getElementById('team-count');
-  if (cnt) cnt.textContent = registeredTeams.length + ' total';
-  if (!el) return;
-  el.innerHTML = registeredTeams.map(t=>`
-    <div class="card" style="margin-bottom:10px;padding:14px 18px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
+function eventsHtml(sum) {
+  if (!sum.events.length) return '';
+  const s = sum.season;
+  return '<div class="card full"><h2 style="margin-bottom:14px">Events in ' + esc(seasonLabel(s)) + '</h2><div class="ev-grid">' + sum.events.map(e => {
+    const st = e.stats;
+    return '<div class="ev"><h3><a href="https://ftcscout.org/events/' + s + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener">' + esc(e.name) + '</a></h3>' +
+      '<div class="meta">' + esc(fmtRange(e.start, e.end)) + (locStr(e.location) ? ', ' + esc(locStr(e.location)) : '') + '</div>' +
+      '<div class="meta"><span class="tag" style="margin-top:6px">' + esc(EVENT_TYPES[e.type] || e.type) + '</span></div>' +
+      (st ? '<div class="res"><span>Rank <b>' + st.rank + '</b></span><span>Quals record <b>' + st.wins + '-' + st.losses + '-' + st.ties + '</b></span>' + (st.opr && st.opr.totalPointsNp != null ? '<span>OPR <b>' + st.opr.totalPointsNp.toFixed(1) + '</b></span>' : '') + '</div>'
+        : '<div class="res muted">' + (String(e.end || e.start) >= todayStr() ? 'Coming up, ' + esc(relDay(e.start, e.end).toLowerCase()) : 'No ranking data') + '</div>') +
+      (e.awards.length ? '<div class="awards">' + awardChips(e.awards, s) + '</div>' : '') + '</div>';
+  }).join('') + '</div></div>';
+}
+
+/* ----- ratings and notes (this browser only) ----- */
+
+function ratingCardHtml(n) {
+  const ratings = store.get(K.ratings, {});
+  const notes = store.get(K.notes, {});
+  const saved = ratings[n];
+  const v = saved || 5;
+  return `
+    <div class="card full">
+      <div class="grid2" style="gap:28px">
         <div>
-          <div style="font-weight:600;font-size:14px">${t.name}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${t.school} &bull; ${[t.city,t.state].filter(Boolean).join(', ')}</div>
+          <h2>Your rating for Team ${n}</h2>
+          <p class="small muted" style="margin:4px 0 14px"><span id="rateStatus">${saved ? 'Saved rating: ' + saved + '/10.' : 'Not rated yet.'}</span> Ratings help you rank teams for alliance selection.</p>
+          <div class="rate">
+            <label class="sr" for="rateIn">Rating from 1 to 10</label>
+            <input type="range" id="rateIn" min="1" max="10" step="1" value="${v}">
+            <div class="rate-num" id="rateNum" style="color:${ratingColor(v)}">${v}</div>
+          </div>
+          <div class="rate-scale"><span>1 Weak</span><span>5 Average</span><span>10 Elite</span></div>
+          <div class="rate-label" id="rateLabel">${esc(RATING_LABELS[v])}</div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-primary btn-sm" id="rateSave">Save rating</button>
+            <button class="btn btn-ghost btn-sm" id="rateClear"${saved ? '' : ' hidden'}>Remove rating</button>
+            <span class="small ok" id="rateMsg" aria-live="polite"></span>
+          </div>
         </div>
-        <a href="https://ftcscout.org/teams/${t.number}" target="_blank" class="badge" style="text-decoration:none">#${t.number}</a>
+        <div>
+          <h2>Your notes</h2>
+          <p class="small muted" style="margin:4px 0 14px">Robot strengths, auto routines, driver skill, anything for alliance selection.</p>
+          <label class="sr" for="noteIn">Notes about Team ${n}</label>
+          <textarea id="noteIn" rows="5" maxlength="4000" placeholder="Example: fast intake, reliable 3-piece auto, struggles with endgame">${esc(notes[n] || '')}</textarea>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-primary btn-sm" id="noteSave">Save notes</button>
+            <span class="small ok" id="noteMsg" aria-live="polite"></span>
+          </div>
+        </div>
       </div>
-    </div>`).join('');
+    </div>`;
 }
 
-function doRegister() {
-  const num    = document.getElementById('reg-num')?.value.trim();
-  const name   = document.getElementById('reg-name')?.value.trim();
-  const school = document.getElementById('reg-school')?.value.trim();
-  const city   = document.getElementById('reg-city')?.value.trim();
-  const state  = document.getElementById('reg-state')?.value.trim();
-  const err    = document.getElementById('reg-err');
-  const ok     = document.getElementById('reg-ok');
-
-  if (!num||!name||!school) { err.textContent='Team number, name, and school are required.'; err.style.display='block'; ok.style.display='none'; return; }
-  if (registeredTeams.find(t=>t.number===parseInt(num))) { err.textContent='This team number is already registered.'; err.style.display='block'; ok.style.display='none'; return; }
-  err.style.display='none';
-  registeredTeams.push({number:parseInt(num),name,school,city,state});
-  ['reg-num','reg-name','reg-school','reg-city','reg-state'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
-  ok.style.display='block';
-  setTimeout(()=>ok.style.display='none',3000);
-  renderTeamList();
+function flash(el, text) {
+  if (!el) return;
+  el.textContent = text;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { if (el.isConnected) el.textContent = ''; }, 2500);
+}
+function wireRating(n) {
+  const input = $('#rateIn');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    const v = +input.value;
+    const num = $('#rateNum');
+    num.textContent = v;
+    num.style.color = ratingColor(v);
+    $('#rateLabel').textContent = RATING_LABELS[v];
+  });
+  const status = $('#rateStatus');
+  const clear = $('#rateClear');
+  $('#rateSave').addEventListener('click', () => {
+    const r = store.get(K.ratings, {});
+    r[n] = +input.value;
+    const ok = store.set(K.ratings, r);
+    if (ok) {
+      status.textContent = 'Saved rating: ' + input.value + '/10.';
+      clear.hidden = false;
+    }
+    flash($('#rateMsg'), ok ? 'Saved ' + input.value + '/10' : 'Could not save. Your browser is blocking storage.');
+    refreshScoutList();
+  });
+  clear.addEventListener('click', () => {
+    const r = store.get(K.ratings, {});
+    delete r[n];
+    store.set(K.ratings, r);
+    status.textContent = 'Not rated yet.';
+    clear.hidden = true;
+    flash($('#rateMsg'), 'Rating removed');
+    refreshScoutList();
+  });
+}
+function wireNotes(n) {
+  const save = $('#noteSave');
+  if (!save) return;
+  save.addEventListener('click', () => {
+    const notes = store.get(K.notes, {});
+    const v = $('#noteIn').value.trim();
+    if (v) notes[n] = v; else delete notes[n];
+    flash($('#noteMsg'), store.set(K.notes, notes) ? (v ? 'Notes saved' : 'Notes cleared') : 'Could not save. Your browser is blocking storage.');
+    refreshScoutList();
+  });
 }
 
-// ─── BOOT ────────────────────────────────────────────────────────────────────
-showPage('home');
+/* ----- the scouting list (every team you rated or took notes on) ----- */
+
+function scoutedTeams() {
+  const ratings = store.get(K.ratings, {}), notes = store.get(K.notes, {}), names = store.get(K.names, {});
+  const nums = Array.from(new Set(Object.keys(ratings).concat(Object.keys(notes)))).filter(k => /^\d+$/.test(k));
+  return nums.map(k => ({ n: +k, name: names[k] || '', rating: ratings[k] || null, note: notes[k] || '' }))
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0) || a.n - b.n);
+}
+function scoutListHtml(limit, compact) {
+  const teams = scoutedTeams();
+  if (!teams.length) {
+    if (!compact) return '';
+    return '<h2>Your scouting list</h2><p class="small muted" style="margin-top:8px">Rate or take notes on a team and it shows up here, ranked by your rating. Handy for alliance selection.</p><p class="small" style="margin-top:10px"><a href="#/scouting">Scout a team</a></p>';
+  }
+  const shown = limit ? teams.slice(0, limit) : teams;
+  return '<div class="card-head"><h2>Your scouting list</h2>' + (compact ? '' : '<div class="row"><button class="btn btn-ghost btn-sm" id="copyList">Copy list</button><button class="btn btn-ghost btn-sm" id="csvList">Download CSV</button></div>') + '</div>' +
+    '<div class="slist">' + shown.map(t => '<div class="srow"><div class="hex sm"><span>' + t.n + '</span></div><div style="min-width:0"><a href="#/scouting/' + t.n + '">' + esc(t.name || 'Team ' + t.n) + '</a>' + (t.note ? '<div class="note">' + esc(t.note) + '</div>' : '') + '</div>' +
+      (t.rating ? '<span class="pill" style="color:' + ratingColor(t.rating) + '">' + t.rating + '/10</span>' : '<span class="small dim">No rating</span>') + '</div>').join('') + '</div>' +
+    (limit && teams.length > limit ? '<p class="small" style="margin-top:10px"><a href="#/scouting">See all ' + teams.length + ' teams</a></p>' : '') +
+    '<span class="small ok" id="listMsg" aria-live="polite"></span>';
+}
+function wireScoutList(root) {
+  const copy = $('#copyList', root), csv = $('#csvList', root);
+  const teams = scoutedTeams();
+  if (copy) copy.addEventListener('click', async () => {
+    const text = teams.map(t => t.n + (t.name ? ' ' + t.name : '') + ': ' + (t.rating ? t.rating + '/10' : 'no rating') + (t.note ? '. ' + t.note.replace(/\s+/g, ' ') : '')).join('\n');
+    try { await navigator.clipboard.writeText(text); flash($('#listMsg', root), 'Copied ' + teams.length + ' teams'); }
+    catch (e) { flash($('#listMsg', root), 'Your browser blocked copying. Use Download CSV instead.'); }
+  });
+  if (csv) csv.addEventListener('click', () => {
+    const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const rows = [['Team', 'Name', 'Rating', 'Notes']].concat(teams.map(t => [t.n, t.name, t.rating || '', t.note]));
+    const blob = new Blob([rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ftcentral-scouting-' + todayStr() + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+}
+function refreshScoutList() {
+  const box = $('#scoutList');
+  const html = scoutListHtml(0, false);
+  if (box) {
+    if (html) { box.innerHTML = html; wireScoutList(box); } else box.remove();
+  } else if (html) {
+    const wrap = $('#scoutResult');
+    if (!wrap) return;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'scoutList';
+    card.style.marginTop = '20px';
+    card.innerHTML = html;
+    wrap.parentNode.appendChild(card);
+    wireScoutList(card);
+  }
+}
+
+/* ================= Events ================= */
+
+function renderEvents(el, args, token) {
+  let region = isRegion(args[0]) ? args[0] : defaultRegion();
+  el.innerHTML = `
+  <section class="page"><div class="wrap">
+    <div class="page-head">
+      <h1>${esc(seasonName(CURRENT_SEASON))} events</h1>
+      <p>Every ${esc(seasonLabel(CURRENT_SEASON))} event FTC Scout has from FIRST, from league meets to championships. New events appear as regions publish them.</p>
+    </div>
+    <div class="filters">
+      <label>Region ${regionSelect('evRegion', region, true)}</label>
+      <label>Type <select id="evType">${Object.keys(TYPE_FILTERS).map(k => '<option value="' + k + '">' + esc(TYPE_FILTERS[k][0]) + '</option>').join('')}</select></label>
+      <label>Search <input id="evSearch" placeholder="Event name or city" autocomplete="off"></label>
+    </div>
+    <label class="checkline"><input type="checkbox" id="evPast"> Include events that already happened</label>
+    <div id="evList" aria-live="polite"></div>
+  </div></section>`;
+  let events = [];
+  const list = $('#evList');
+  const draw = () => {
+    const type = TYPE_FILTERS[$('#evType').value][1];
+    const qText = $('#evSearch').value.trim().toLowerCase();
+    const past = $('#evPast').checked;
+    const t = todayStr();
+    const shown = events.filter(e => e.type !== 'VolunteerSignup')
+      .filter(e => past || String(e.end || e.start) >= t)
+      .filter(e => !type || type.indexOf(e.type) !== -1)
+      .filter(e => !qText || (e.name + ' ' + locStr(e.location) + ' ' + (e.location && e.location.venue || '') + ' ' + e.code).toLowerCase().indexOf(qText) !== -1)
+      .sort((a, b) => a.start.localeCompare(b.start) || a.name.localeCompare(b.name));
+    if (!shown.length) {
+      list.innerHTML = '<div class="card"><div class="empty"><h3>No events match</h3><p class="small">Try another region or type, or clear the search.</p></div></div>';
+      return;
+    }
+    let html = '<p class="count">' + fmtInt(shown.length) + ' event' + (shown.length === 1 ? '' : 's') + ' in ' + esc(REGION_NAMES[region]) + '</p>';
+    let month = '';
+    shown.forEach(e => {
+      const d = parseDay(e.start);
+      const m = MONTH[d.getMonth()] + ' ' + d.getFullYear();
+      if (m !== month) { month = m; html += '<h2 class="month">' + m + '</h2>'; }
+      const scout = 'https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code);
+      const stream = safeUrl(e.liveStreamURL);
+      html += '<div class="erow"><div class="edate">' + esc(e.start === e.end || !e.end ? fmtDay(e.start, false) : fmtRange(e.start, e.end).replace(/, \d{4}$/, '')) + '<small>' + esc(relDay(e.start, e.end)) + '</small></div>' +
+        '<div style="min-width:0"><h3><a href="' + scout + '" target="_blank" rel="noopener">' + esc(e.name) + '</a></h3><div class="emeta"><span class="tag' + (BIG_TYPES.indexOf(e.type) !== -1 ? ' tag-honey' : '') + '">' + esc(EVENT_TYPES[e.type] || e.type) + '</span>' +
+        (e.remote ? '<span class="tag tag-cyan">Remote</span>' : '') + '<span>' + esc([e.location && e.location.venue, locStr(e.location)].filter(Boolean).join(', ')) + '</span></div></div>' +
+        '<div class="elinks">' + extLink(scout, 'FTC Scout') + extLink('https://ftc-events.firstinspires.org/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code), 'FIRST') + (stream ? extLink(stream, 'Livestream') : '') + '</div></div>';
+    });
+    list.innerHTML = html;
+  };
+  const load = () => {
+    const past = $('#evPast').checked;
+    list.innerHTML = '<div class="card">' + skeleton('Loading ' + REGION_NAMES[region] + ' events from FTC Scout', 6) + '</div>';
+    gql(Q_EVENTS, { s: CURRENT_SEASON, r: region, start: past ? null : addDays(todayStr(), -7) }).then(d => {
+      if (!live(token)) return;
+      events = d.eventsSearch || [];
+      draw();
+    }).catch(e => {
+      if (!live(token)) return;
+      list.innerHTML = errorBox(apiMessage(e), 'evRetry');
+      $('#evRetry').addEventListener('click', load);
+    });
+  };
+  $('#evRegion').addEventListener('change', e => {
+    region = e.target.value;
+    store.set(K.region, region);
+    history.replaceState(null, '', '#/events/' + encodeURIComponent(region));
+    load();
+  });
+  $('#evType').addEventListener('change', draw);
+  $('#evSearch').addEventListener('input', debounce(draw, 150));
+  $('#evPast').addEventListener('change', load);
+  load();
+}
+
+/* ================= Messages (preview: drafts stay on this device) ================= */
+
+function getThreads() { return store.get(K.msgs, {}); }
+function saveThreads(t) { return store.set(K.msgs, t); }
+
+function renderMessages(el, args, token) {
+  const target = args[0] && /^\d{1,6}$/.test(args[0]) ? args[0] : null;
+  el.innerHTML = `
+  <section class="page"><div class="wrap">
+    <div class="page-head">
+      <h1>Messages</h1>
+      <p>Team-to-team messaging for FTC: scrimmage invites, borrowing parts, trading tips.</p>
+    </div>
+    <div class="notice info"><b>Preview.</b> FTCentral doesn't have accounts yet, so messages can't be delivered. Anything you write here is saved as a draft on this device only. Use <b>Copy</b> to paste it into email or Discord, or use the team's website link to reach them. When team inboxes launch, every message will go to the whole team inbox, so coaches can always see it.</div>
+    <div class="chat">
+      <div class="threads">
+        <form id="newThread" autocomplete="off">
+          <label class="field" style="margin-bottom:8px"><span>Start a conversation</span>
+            <div class="row" style="flex-wrap:nowrap"><input id="ntIn" inputmode="numeric" maxlength="6" placeholder="Team number"><button class="btn btn-primary btn-sm" type="submit">Open</button></div>
+          </label>
+          <div class="verify" id="ntMsg" aria-live="polite"></div>
+        </form>
+        <div id="threadList"></div>
+      </div>
+      <div class="convo" id="convo"></div>
+    </div>
+  </div></section>`;
+  const p = profile();
+  const open = async n => {
+    const msg = $('#ntMsg');
+    const threads = getThreads();
+    if (p && p.team && String(n) === String(p.team)) { msg.innerHTML = '<span class="bad">That\'s your own team.</span>'; return; }
+    if (!threads[n]) {
+      msg.innerHTML = '<span class="muted">Checking FTC Scout...</span>';
+      try {
+        const t = await fetchTeamBasic(+n);
+        if (!live(token)) return;
+        if (!t) { msg.innerHTML = '<span class="bad">No FTC team ' + esc(n) + ' on FTC Scout.</span>'; return; }
+        const fresh = getThreads();
+        fresh[n] = { name: t.name, place: locStr(t.location), website: safeUrl(t.website), drafts: [] };
+        saveThreads(fresh);
+        rememberName(n, t.name);
+      } catch (e) { if (live(token)) msg.innerHTML = '<span class="bad">' + esc(apiMessage(e)) + '</span>'; return; }
+    }
+    msg.textContent = '';
+    if (location.hash !== '#/messages/' + n) history.replaceState(null, '', '#/messages/' + n);
+    drawThreads(n);
+    drawConvo(n);
+  };
+  $('#newThread').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('#ntIn').value.trim();
+    if (!/^\d{1,6}$/.test(v)) { $('#ntMsg').innerHTML = '<span class="bad">Enter a team number.</span>'; return; }
+    $('#ntIn').value = '';
+    open(v);
+  });
+  const drawThreads = active => {
+    const threads = getThreads();
+    const keys = Object.keys(threads).sort((a, b) => {
+      const la = (threads[a].drafts.slice(-1)[0] || {}).at || '', lb = (threads[b].drafts.slice(-1)[0] || {}).at || '';
+      return lb.localeCompare(la) || +a - +b;
+    });
+    $('#threadList').innerHTML = keys.length ? keys.map(k => {
+      const t = threads[k], last = t.drafts.slice(-1)[0];
+      return '<a class="thread" href="#/messages/' + k + '"' + (String(active) === k ? ' aria-current="true"' : '') + '><div class="hex sm"><span>' + esc(k) + '</span></div><div style="min-width:0"><div class="t">' + esc(t.name) + '</div><div class="s">' + esc(last ? last.text : t.place || 'No drafts yet') + '</div></div></a>';
+    }).join('') : '<p class="small muted" style="padding:14px">No conversations yet. Enter a team number above to start one.</p>';
+  };
+  const drawConvo = n => {
+    const box = $('#convo');
+    const threads = getThreads();
+    const t = n && threads[n];
+    if (!t) {
+      box.innerHTML = '<div class="empty" style="margin:auto"><h3>Pick a team to write to</h3><p class="small">Start a conversation with any team number, or use Message team on a scouting report.</p></div>';
+      return;
+    }
+    box.innerHTML = '<div class="convo-head"><div class="hex sm"><span>' + esc(n) + '</span></div><div style="flex:1;min-width:0"><h2 style="font-size:16px">' + esc(t.name) + '</h2><div class="small muted">' + esc(t.place || '') + '</div></div><div class="row">' +
+      (t.website ? extLink(t.website, 'Team website') : '') + '<a class="btn btn-ghost btn-sm" href="#/scouting/' + esc(n) + '">Scout</a><button class="btn btn-ghost btn-sm" id="delThread">Delete conversation</button></div></div>' +
+      '<div class="convo-body" id="drafts">' + (t.drafts.length ? t.drafts.map((d, i) => '<div class="draft"><p>' + esc(d.text) + '</p><div class="meta"><span>Draft, ' + esc(fmtDay(d.at.slice(0, 10))) + '</span><button data-copy="' + i + '">Copy</button><button data-del="' + i + '">Delete</button></div></div>').join('')
+        : '<div class="empty" style="margin:auto"><p class="small">No drafts yet. Write your first message below.</p></div>') + '</div>' +
+      '<form class="composer" id="composer"><label class="sr" for="draftIn">Message to ' + esc(t.name) + '</label><textarea id="draftIn" rows="2" maxlength="2000" placeholder="Write to ' + esc(t.name) + '..."></textarea><button class="btn btn-primary" type="submit">Save draft</button></form>';
+    const body = $('#drafts');
+    body.scrollTop = body.scrollHeight;
+    $('#composer').addEventListener('submit', e => {
+      e.preventDefault();
+      const v = $('#draftIn').value.trim();
+      if (!v) return;
+      const all = getThreads();
+      all[n].drafts.push({ text: v, at: new Date().toISOString() });
+      saveThreads(all);
+      drawThreads(n);
+      drawConvo(n);
+      $('#draftIn').focus();
+    });
+    $('#draftIn').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('#composer').requestSubmit(); });
+    $$('[data-copy]', box).forEach(b => b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(t.drafts[+b.dataset.copy].text); b.textContent = 'Copied'; }
+      catch (e) { b.textContent = 'Copy blocked'; }
+      setTimeout(() => { if (b.isConnected) b.textContent = 'Copy'; }, 2000);
+    }));
+    $$('[data-del]', box).forEach(b => b.addEventListener('click', () => {
+      const all = getThreads();
+      all[n].drafts.splice(+b.dataset.del, 1);
+      saveThreads(all);
+      drawThreads(n);
+      drawConvo(n);
+    }));
+    let armed = false;
+    $('#delThread').addEventListener('click', e => {
+      const btn = e.currentTarget;
+      if (!armed) { armed = true; btn.textContent = 'Click again to delete'; setTimeout(() => { if (btn.isConnected) { armed = false; btn.textContent = 'Delete conversation'; } }, 4000); return; }
+      const all = getThreads();
+      delete all[n];
+      saveThreads(all);
+      history.replaceState(null, '', '#/messages');
+      drawThreads(null);
+      drawConvo(null);
+    });
+  };
+  drawThreads(target);
+  drawConvo(target && getThreads()[target] ? target : null);
+  if (target && !getThreads()[target]) open(target);
+}
+
+/* ================= Learning ================= */
+
+function renderLearning(el, args) {
+  const tab = RESOURCES[args[0]] ? args[0] : 'season';
+  el.innerHTML = `
+  <section class="page"><div class="wrap">
+    <div class="page-head">
+      <h1>Learning hub</h1>
+      <p>The links our team actually uses: the BIOBUZZ rules, programming guides, CAD help and scouting tools.</p>
+    </div>
+    <div class="tabbar" role="tablist">${Object.keys(RESOURCES).map(k => '<a href="#/learning/' + k + '" role="tab"' + (k === tab ? ' aria-current="true" aria-selected="true"' : ' aria-selected="false"') + '>' + esc(RESOURCES[k][0]) + '</a>').join('')}</div>
+    <div class="res-list">${RESOURCES[tab][1].map(r => '<a class="resource" href="' + esc(r[3]) + '" target="_blank" rel="noopener"><span class="icon" aria-hidden="true">' + r[0] + '</span><span style="min-width:0"><h3 class="ext">' + esc(r[1]) + '</h3><p>' + esc(r[2]) + '</p><p class="domain">' + esc(domainOf(r[3])) + '</p></span></a>').join('')}</div>
+    <div class="notice info" style="margin-top:24px">Know a guide that helped your team? <a class="ext" href="https://github.com/Alex-8bit-dot/FTCentral/issues/new" target="_blank" rel="noopener">Suggest it on GitHub</a> and we'll add it.</div>
+  </div></section>`;
+}
+
+/* ================= Start ================= */
+
+window.addEventListener('hashchange', route);
+route();
+
+// Fade the edge of the tab row only while some tabs are scrolled out of view (very narrow screens).
+const tabRow = $('nav.tabs');
+const markTabOverflow = () => tabRow.classList.toggle('more', tabRow.scrollWidth - tabRow.clientWidth - tabRow.scrollLeft > 4);
+tabRow.addEventListener('scroll', markTabOverflow, { passive: true });
+window.addEventListener('resize', markTabOverflow);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(markTabOverflow);
+markTabOverflow();
+})();
 </script>
 </body>
 </html>
