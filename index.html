@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FTCentral | FTC scouting, events and team tools</title>
 <meta name="description" content="Look up any FTC team's record, OPR and awards, find upcoming BIOBUZZ events, and keep scouting notes for alliance selection. Built by the MantaBots, FTC Team 27318.">
-<meta name="theme-color" content="#F6F4EE">
+<meta name="theme-color" content="#F4EFE3">
 <script>try{var t=localStorage.getItem('ftcentral.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FTCentral">
@@ -26,15 +26,15 @@
 <style>
 :root{
   color-scheme:light;
-  --bg0:#F6F4EE;--bg1:#FFFFFF;--bg2:#EFEDE6;--bg3:#E4E0D6;
-  --line:#E3DED3;--line2:#CFC8BA;
-  --accent:#087F8C;--accent-ink:#FFFFFF;--accent-soft:#D8F1F2;--accent-bright:#12A8B5;
+  --bg0:#F4EFE3;--bg1:#FCF8EF;--bg2:#EEE8DA;--bg3:#E3DCCA;
+  --line:#E4DCCB;--line2:#CFC5B0;
+  --accent:#06727E;--accent-ink:#FDFAF2;--accent-soft:#DCEDE6;--accent-bright:#12A8B5;
   --honey:#9C5C06;--honey-soft:#FCEBC6;--honey-fill:#F5A524;
   --green:#178A4A;--red:#D6453B;--blue:#2F6FDB;
   --text:#1E2326;--muted:#5D6468;--dim:#8A9094;
   --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
-  --r:18px;--r-sm:10px;--shadow:0 1px 2px rgba(30,35,38,.05),0 8px 28px rgba(30,35,38,.06);
+  --r:18px;--r-sm:10px;--shadow:0 1px 2px rgba(70,55,30,.06),0 8px 28px rgba(70,55,30,.07);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -302,6 +302,9 @@ footer.site strong{color:var(--text);font-weight:600}
 
 /* ambient background: slow color washes and drifting pollen, behind everything */
 .ambient{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+.ambient::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.09;mix-blend-mode:multiply}
+:root[data-theme="dark"] .ambient::after{mix-blend-mode:screen;opacity:.05}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ambient::after{mix-blend-mode:screen;opacity:.05}}
 .ambient .wash{position:absolute;border-radius:50%;opacity:.9;will-change:transform}
 .ambient .w1{width:58vmax;height:58vmax;left:-14vmax;top:-22vmax;background:radial-gradient(circle,var(--accent-soft) 0%,color-mix(in srgb,var(--accent-soft) 70%,transparent) 22%,color-mix(in srgb,var(--accent-soft) 38%,transparent) 42%,color-mix(in srgb,var(--accent-soft) 14%,transparent) 58%,transparent 70%);animation:drift1 38s ease-in-out infinite alternate}
 .ambient .w2{width:46vmax;height:46vmax;right:-16vmax;top:28vh;background:radial-gradient(circle,var(--honey-soft) 0%,color-mix(in srgb,var(--honey-soft) 70%,transparent) 22%,color-mix(in srgb,var(--honey-soft) 38%,transparent) 42%,color-mix(in srgb,var(--honey-soft) 14%,transparent) 58%,transparent 70%);animation:drift2 46s ease-in-out infinite alternate}
@@ -1835,7 +1838,7 @@ function syncTheme() {
   const dark = isDark(), btn = $('#themeBtn');
   document.documentElement.classList.toggle('theme-dark', dark);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = dark ? '#131619' : '#F6F4EE';
+  if (meta) meta.content = dark ? '#131619' : '#F4EFE3';
   if (btn) { const l = 'Switch to ' + (dark ? 'light' : 'dark') + ' mode'; btn.setAttribute('aria-label', l); btn.title = l; }
 }
 $('#themeBtn').addEventListener('click', () => {
