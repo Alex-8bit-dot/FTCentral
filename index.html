@@ -60,7 +60,8 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;overflow-anchor:none}
-body{background:var(--bg0);color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+html{background:var(--bg0)}
+body{background:transparent;color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
 main{flex:1;outline:none}
 main:focus,main:focus-visible{outline:none}
 a{color:var(--accent);text-decoration:none;text-underline-offset:2px}
@@ -299,6 +300,28 @@ footer.site strong{color:var(--text);font-weight:600}
 .shooter .flywheel{transform-box:fill-box;transform-origin:center;animation:spin .4s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ambient background: slow color washes and drifting pollen, behind everything */
+.ambient{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+.ambient .wash{position:absolute;border-radius:50%;opacity:.9;will-change:transform}
+.ambient .w1{width:58vmax;height:58vmax;left:-14vmax;top:-22vmax;background:radial-gradient(circle,var(--accent-soft) 0%,color-mix(in srgb,var(--accent-soft) 70%,transparent) 22%,color-mix(in srgb,var(--accent-soft) 38%,transparent) 42%,color-mix(in srgb,var(--accent-soft) 14%,transparent) 58%,transparent 70%);animation:drift1 38s ease-in-out infinite alternate}
+.ambient .w2{width:46vmax;height:46vmax;right:-16vmax;top:28vh;background:radial-gradient(circle,var(--honey-soft) 0%,color-mix(in srgb,var(--honey-soft) 70%,transparent) 22%,color-mix(in srgb,var(--honey-soft) 38%,transparent) 42%,color-mix(in srgb,var(--honey-soft) 14%,transparent) 58%,transparent 70%);animation:drift2 46s ease-in-out infinite alternate}
+.ambient .w3{width:40vmax;height:40vmax;left:30vw;bottom:-26vmax;background:radial-gradient(circle,color-mix(in srgb,var(--blue) 14%,transparent) 0%,color-mix(in srgb,color-mix(in srgb,var(--blue) 14%,transparent) 70%,transparent) 22%,color-mix(in srgb,color-mix(in srgb,var(--blue) 14%,transparent) 38%,transparent) 42%,color-mix(in srgb,color-mix(in srgb,var(--blue) 14%,transparent) 14%,transparent) 58%,transparent 70%);animation:drift1 54s ease-in-out infinite alternate-reverse}
+@keyframes drift1{to{transform:translate(9vw,7vh) scale(1.12)}}
+@keyframes drift2{to{transform:translate(-8vw,-9vh) scale(.92)}}
+.ambient .pollen{position:absolute;bottom:-20px;width:var(--s);height:var(--s);border-radius:50%;background:var(--honey-fill);opacity:0;animation:float var(--t) linear infinite;animation-delay:var(--d)}
+@keyframes float{0%{transform:translate(0,0);opacity:0}10%{opacity:var(--o)}50%{transform:translate(var(--x),-55vh)}90%{opacity:var(--o)}100%{transform:translate(0,-112vh);opacity:0}}
+
+/* every inner page gets a slice of field: a tile grid that fades out, plus a lit patch that follows the cursor */
+.page{position:relative;isolation:isolate}
+.page::before,.page::after{content:"";position:absolute;left:0;right:0;top:0;height:420px;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:64px 64px;background-position:center -1px}
+.page::before{--grid:color-mix(in srgb,var(--accent) 16%,transparent);-webkit-mask-image:linear-gradient(#000 10%,transparent 92%);mask-image:linear-gradient(#000 10%,transparent 92%)}
+.page::after{--grid:color-mix(in srgb,var(--accent-bright) 70%,transparent);opacity:var(--spot-o,0);transition:opacity .4s;
+  -webkit-mask-image:radial-gradient(180px circle at var(--mx,50%) var(--my,0),#000,transparent 75%);mask-image:radial-gradient(180px circle at var(--mx,50%) var(--my,0),#000,transparent 75%)}
+.hero{--grid:transparent}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--spot-o,0);transition:opacity .4s;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--accent-bright) 16%,transparent),transparent 70%)}
+
 /* motion */
 .rv{animation:rise .55s cubic-bezier(.2,.75,.25,1) backwards;animation-delay:var(--d,0ms)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}}
@@ -318,7 +341,7 @@ a.ext:hover::after,a:hover>.ext::after,a:hover .ext::after{transform:translate(2
 .hex{transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
 .profile-head:hover .hex,.srow:hover .hex{transform:scale(1.06)}
 @media (max-width:880px){.field-bg .drive{display:none}}
-@media (prefers-reduced-motion:reduce){.hero h1 mark{background-size:100% 100%}.field-bg .bot{display:none}*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){.ambient .pollen{display:none}.ambient .wash{animation:none}.hero h1 mark{background-size:100% 100%}.field-bg .bot{display:none}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:880px){
   .res-list{gap:0}
   .hero .wrap,.grid2,.grid-main,footer.site .wrap,.res-list{grid-template-columns:1fr}
@@ -360,6 +383,7 @@ nav.tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mas
 </style>
 </head>
 <body>
+<div class="ambient" aria-hidden="true"><div class="wash w1"></div><div class="wash w2"></div><div class="wash w3"></div><i class="pollen" style="left:8%;--s:7px;--t:26s;--d:0s;--o:.38;--x:40px"></i><i class="pollen" style="left:22%;--s:9px;--t:34s;--d:-9s;--o:.3;--x:-30px"></i><i class="pollen" style="left:37%;--s:6px;--t:22s;--d:-4s;--o:.4;--x:24px"></i><i class="pollen" style="left:55%;--s:8px;--t:30s;--d:-15s;--o:.32;--x:-36px"></i><i class="pollen" style="left:71%;--s:7px;--t:28s;--d:-6s;--o:.35;--x:30px"></i><i class="pollen" style="left:86%;--s:10px;--t:38s;--d:-20s;--o:.28;--x:-24px"></i><i class="pollen" style="left:94%;--s:6px;--t:24s;--d:-11s;--o:.38;--x:18px"></i></div>
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <div class="wrap">
@@ -1824,6 +1848,27 @@ $('#themeBtn').addEventListener('click', () => {
 });
 if (sysDark) sysDark.addEventListener('change', () => { let saved = null; try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* storage blocked */ } if (!saved) delete document.documentElement.dataset.theme; syncTheme(); });
 syncTheme();
+
+
+// Light up the grid under the cursor on whichever page or hero it is over.
+if (!REDUCED && matchMedia('(hover: hover)').matches) {
+  let raf = 0, last = null;
+  document.addEventListener('pointermove', e => {
+    last = e;
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const zone = last.target.closest && last.target.closest('.page,.hero');
+      $$('.page,.hero').forEach(z => { if (z !== zone) z.style.setProperty('--spot-o', '0'); });
+      if (!zone) return;
+      const r = zone.getBoundingClientRect();
+      zone.style.setProperty('--mx', (last.clientX - r.left) + 'px');
+      zone.style.setProperty('--my', (last.clientY - r.top) + 'px');
+      zone.style.setProperty('--spot-o', zone.classList.contains('hero') || last.clientY - r.top < 440 ? '1' : '0');
+    });
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => $$('.page,.hero').forEach(z => z.style.setProperty('--spot-o', '0')));
+}
 
 /* ================= Start ================= */
 
