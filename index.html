@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FTCentral | FTC scouting, events and team tools</title>
 <meta name="description" content="Look up any FTC team's record, OPR and awards, find upcoming BIOBUZZ events, and keep scouting notes for alliance selection. Built by the MantaBots, FTC Team 27318.">
-<meta name="theme-color" content="#F7F5F0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141618" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F4EE">
+<script>try{var t=localStorage.getItem('ftcentral.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FTCentral">
 <meta property="og:title" content="FTCentral: scouting, events and team tools for FTC">
@@ -20,7 +20,7 @@
 <!--
   FTCentral, by the MantaBots (FTC Team 27318).
   Team, match and event data comes from the FTC Scout GraphQL API (api.ftcscout.org).
-  Everything a visitor types (profile, ratings, notes, message drafts) is stored only in their own browser (localStorage).
+  Everything a visitor types (profile, ratings, notes) is stored only in their own browser (localStorage).
   This page must be served from the web (GitHub Pages). Opened as a local file, FTC Scout will refuse the requests.
 -->
 <style>
@@ -37,7 +37,7 @@
   --r:18px;--r-sm:10px;--shadow:0 1px 2px rgba(30,35,38,.05),0 8px 28px rgba(30,35,38,.06);
 }
 @media (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg0:#131619;--bg1:#1A1E22;--bg2:#21262B;--bg3:#2B3137;
     --line:#2C3135;--line2:#3B4146;
@@ -47,6 +47,16 @@
     --text:#E6E3DD;--muted:#A3A8AB;--dim:#757B7F;
     --shadow:0 0 0 1px rgba(255,255,255,.04);
   }
+}
+:root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg0:#131619;--bg1:#1A1E22;--bg2:#21262B;--bg3:#2B3137;
+    --line:#2C3135;--line2:#3B4146;
+    --accent:#3CC6D0;--accent-ink:#0B1A1C;--accent-soft:#163538;--accent-bright:#3CC6D0;
+    --honey:#F2B23E;--honey-soft:#33280F;--honey-fill:#F2B23E;
+    --green:#4CCB84;--red:#F0766B;--blue:#6B9BF2;
+    --text:#E6E3DD;--muted:#A3A8AB;--dim:#757B7F;
+    --shadow:0 0 0 1px rgba(255,255,255,.04);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;overflow-anchor:none}
@@ -88,6 +98,13 @@ nav.tabs a{display:flex;align-items:center;color:var(--muted);font-weight:500;fo
 nav.tabs a:hover{color:var(--text);text-decoration:none}
 nav.tabs a{transition:color .2s}
 nav.tabs a[aria-current="page"]{color:var(--text)}
+.theme-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex-shrink:0;margin-right:-6px;transition:background .15s,color .15s}
+.theme-btn:hover{background:var(--bg2);color:var(--text)}
+.theme-btn svg{grid-area:1/1;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .45s cubic-bezier(.3,1.3,.5,1),opacity .25s}
+.theme-btn .i-moon{opacity:0;transform:rotate(-90deg) scale(.5)}
+.theme-dark .theme-btn .i-sun{opacity:0;transform:rotate(90deg) scale(.5)}
+.theme-dark .theme-btn .i-moon{opacity:1;transform:none}
+.theme-swap,.theme-swap *,.theme-swap *::before,.theme-swap *::after{transition:background-color .3s,border-color .3s,color .3s,fill .3s,stroke .3s!important}
 .me{display:flex;align-items:center;gap:8px;color:var(--text);font-size:13.5px;font-weight:500;white-space:nowrap}
 .me:hover{text-decoration:none}
 .me:hover .dot{background:var(--accent);color:var(--accent-ink)}
@@ -153,7 +170,8 @@ h3{font-size:15px;font-weight:600;line-height:1.35}
 .hero h1{font-size:50px;line-height:1.06;font-weight:600;letter-spacing:-.035em;max-width:16ch}
 .hero h1 mark{color:inherit;background:linear-gradient(transparent 62%,var(--honey-fill) 62%,var(--honey-fill) 88%,transparent 88%);background-size:0 100%;background-repeat:no-repeat;animation:swipe .9s cubic-bezier(.6,0,.2,1) .5s forwards;padding:0 .05em}
 @keyframes swipe{to{background-size:100% 100%}}
-@media (prefers-color-scheme:dark){.hero h1 mark{background-image:linear-gradient(transparent 62%,color-mix(in srgb,var(--honey-fill) 62%,transparent) 62%,color-mix(in srgb,var(--honey-fill) 62%,transparent) 88%,transparent 88%)}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hero h1 mark{background-image:linear-gradient(transparent 62%,color-mix(in srgb,var(--honey-fill) 62%,transparent) 62%,color-mix(in srgb,var(--honey-fill) 62%,transparent) 88%,transparent 88%)}}
+:root[data-theme="dark"] .hero h1 mark{background-image:linear-gradient(transparent 62%,color-mix(in srgb,var(--honey-fill) 62%,transparent) 62%,color-mix(in srgb,var(--honey-fill) 62%,transparent) 88%,transparent 88%)}
 .hero .lead{color:var(--muted);font-size:17px;line-height:1.6;margin-top:18px;max-width:52ch}
 .lookup{margin-top:30px;display:flex;gap:8px;max-width:500px}
 .lookup input{font-size:17px;padding:12px 20px;border-radius:999px}
@@ -250,24 +268,6 @@ input[type=range]{padding:0;height:22px;accent-color:var(--accent);border:0;back
 .dash-ev .edate{font-size:13px}
 .dash-ev a{color:var(--text);font-weight:500}
 
-/* messages */
-.chat{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;margin-top:20px}
-.threads,.convo{background:var(--bg1);box-shadow:var(--shadow);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
-.threads form{padding:14px;border-bottom:1px solid var(--line)}
-.thread{display:flex;gap:10px;align-items:center;width:calc(100% - 12px);margin:2px 6px;padding:10px 12px;border-radius:12px;text-align:left;color:var(--text)}
-.thread:hover{background:var(--bg2);text-decoration:none}
-.thread[aria-current="true"]{background:var(--accent-soft)}
-.thread .t{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.thread .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.convo-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.convo-body{flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-height:260px;max-height:460px;overflow-y:auto;background:var(--bg0)}
-.draft{align-self:flex-end;max-width:85%;background:var(--bg1);box-shadow:var(--shadow);border-radius:18px 18px 6px 18px;padding:10px 14px}
-.draft p{white-space:pre-wrap;overflow-wrap:anywhere}
-.draft .meta{display:flex;gap:12px;justify-content:flex-end;align-items:center;font-size:12px;color:var(--dim);margin-top:6px}
-.draft .meta button{color:var(--accent);font-weight:500}
-.composer{display:flex;gap:10px;padding:12px;border-top:1px solid var(--line);align-items:flex-end}
-.composer textarea{min-height:44px;max-height:160px;resize:none}
-
 /* learning */
 .tabbar{display:inline-flex;gap:2px;padding:4px;background:var(--bg2);border-radius:999px;margin-bottom:26px;max-width:100%;overflow-x:auto;scrollbar-width:none}
 .tabbar a{padding:7px 16px;font-size:14px;font-weight:500;color:var(--muted);border-radius:999px;white-space:nowrap}
@@ -314,9 +314,9 @@ a.ext:hover::after,a:hover>.ext::after,a:hover .ext::after{transform:translate(2
 .dash-ev,.srow,.mini-ev{transition:background .15s}
 .erow:hover .edate{color:var(--accent)}
 .edate{transition:color .15s}
-.chip,.tag,.thread,.me .dot{transition:background .15s,color .15s}
+.chip,.tag,.me .dot{transition:background .15s,color .15s}
 .hex{transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
-.profile-head:hover .hex,.srow:hover .hex,.thread:hover .hex{transform:scale(1.06)}
+.profile-head:hover .hex,.srow:hover .hex{transform:scale(1.06)}
 @media (max-width:880px){.field-bg .drive{display:none}}
 @media (prefers-reduced-motion:reduce){.hero h1 mark{background-size:100% 100%}.field-bg .bot{display:none}*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:880px){
@@ -326,14 +326,12 @@ a.ext:hover::after,a:hover>.ext::after,a:hover .ext::after{transform:translate(2
   .hero h1{font-size:34px}
   .filters{grid-template-columns:1fr 1fr}
   .filters label:last-child{grid-column:1/-1}
-  .chat{grid-template-columns:1fr}
-  .threads{max-height:320px}
 }
 @media (max-width:780px){
   /* tabs get their own row so all five stay visible */
   .topbar .wrap{flex-wrap:wrap;gap:0 12px;padding-top:10px}
   nav.tabs{order:3;flex-basis:100%;margin:0 -10px;min-height:40px}
-  #me{margin-left:auto}
+  .theme-btn{margin-left:auto}
 }
 @media (max-width:560px){
   .wrap{padding:0 16px}
@@ -373,10 +371,10 @@ nav.tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mas
       <a href="#/dashboard" data-page="dashboard">Dashboard</a>
       <a href="#/scouting" data-page="scouting">Scouting</a>
       <a href="#/events" data-page="events">Events</a>
-      <a href="#/messages" data-page="messages">Messages</a>
       <a href="#/learning" data-page="learning">Learning</a>
       <span class="nav-ind" aria-hidden="true"></span>
     </nav>
+    <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch to dark mode" title="Switch to dark mode"><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button>
     <div id="me"></div>
   </div>
 </header>
@@ -392,7 +390,7 @@ nav.tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mas
     </div>
     <div>
       <p><strong>Your privacy</strong></p>
-      <p>FTCentral has no accounts, ads or tracking. Your profile, ratings, notes and message drafts are saved only in this browser. The only thing sent anywhere is the team or event you look up, which goes to FTC Scout.</p>
+      <p>FTCentral has no accounts, ads or tracking. Your profile, ratings and notes are saved only in this browser. The only thing sent anywhere is the team or event you look up, which goes to FTC Scout.</p>
       <p><a href="https://github.com/Alex-8bit-dot/FTCentral" target="_blank" rel="noopener">Source code on GitHub</a></p>
     </div>
   </div>
@@ -604,7 +602,7 @@ function awardChips(awards, season) {
 
 /* ================= Storage (this browser only) ================= */
 
-const K = { profile: 'ftcentral.profile', notes: 'ftcentral.notes', ratings: 'ftcRatings', names: 'ftcentral.teamNames', msgs: 'ftcentral.messages', region: 'ftcentral.region' };
+const K = { profile: 'ftcentral.profile', notes: 'ftcentral.notes', ratings: 'ftcRatings', names: 'ftcentral.teamNames', msgs: 'ftcentral.messages' /* legacy, from the removed messages page */, region: 'ftcentral.region' };
 const store = {
   get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; } },
@@ -747,8 +745,8 @@ let renderToken = 0;
 let lastPage = null;
 let lastPath = null;
 let pendingQuery = '';
-const PAGES = { home: renderHome, dashboard: renderDashboard, scouting: renderScouting, events: renderEvents, messages: renderMessages, learning: renderLearning };
-const TITLES = { dashboard: 'Dashboard', scouting: 'Scout a team', events: 'BIOBUZZ events', messages: 'Messages', learning: 'Learning hub' };
+const PAGES = { home: renderHome, dashboard: renderDashboard, scouting: renderScouting, events: renderEvents, learning: renderLearning };
+const TITLES = { dashboard: 'Dashboard', scouting: 'Scout a team', events: 'BIOBUZZ events', learning: 'Learning hub' };
 
 function route() {
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(p => { try { return decodeURIComponent(p); } catch (e) { return p; } });
@@ -905,7 +903,7 @@ function profileSummary() {
       <button class="btn btn-ghost btn-sm" id="editProfile">Edit profile</button>
       <button class="btn btn-danger btn-sm" id="wipe">Delete my data</button>
     </div>
-    <p class="small dim" style="margin-top:14px">Saved in this browser only. Delete my data removes your profile, ratings, notes and drafts from this device.</p>`;
+    <p class="small dim" style="margin-top:14px">Saved in this browser only. Delete my data removes your profile, ratings and notes from this device.</p>`;
   $('#editProfile').addEventListener('click', profileForm);
   const wipe = $('#wipe');
   let armed = false;
@@ -1443,7 +1441,7 @@ function resultHtml(team, cur, shown, note) {
         ${extLink('https://ftcscout.org/teams/' + n + '?season=' + s, 'FTC Scout page')}
         ${extLink('https://ftcvideos.org/?search=' + n, 'Match videos')}
         ${extLink('https://ftc-events.firstinspires.org/' + s + '/team/' + n, 'Official FIRST results')}
-        <a class="btn btn-ghost btn-sm" href="#/messages/${n}">Message team</a>
+        ${site ? extLink(site, 'Team website') : ''}
       </div>
     </div>`;
   return `
@@ -1724,129 +1722,6 @@ function renderEvents(el, args, token) {
   load();
 }
 
-/* ================= Messages (preview: drafts stay on this device) ================= */
-
-function getThreads() { return store.get(K.msgs, {}); }
-function saveThreads(t) { return store.set(K.msgs, t); }
-
-function renderMessages(el, args, token) {
-  const target = args[0] && /^\d{1,6}$/.test(args[0]) ? args[0] : null;
-  el.innerHTML = `
-  <section class="page"><div class="wrap">
-    <div class="page-head">
-      <h1>Messages</h1>
-      <p>Team-to-team messaging for FTC: scrimmage invites, borrowing parts, trading tips.</p>
-    </div>
-    <div class="notice info"><b>Preview.</b> FTCentral doesn't have accounts yet, so messages can't be delivered. Anything you write here is saved as a draft on this device only. Use <b>Copy</b> to paste it into email or Discord, or use the team's website link to reach them. When team inboxes launch, every message will go to the whole team inbox, so coaches can always see it.</div>
-    <div class="chat">
-      <div class="threads">
-        <form id="newThread" autocomplete="off">
-          <label class="field" style="margin-bottom:8px"><span>Start a conversation</span>
-            <div class="row" style="flex-wrap:nowrap"><input id="ntIn" inputmode="numeric" maxlength="6" placeholder="Team number"><button class="btn btn-primary btn-sm" type="submit">Open</button></div>
-          </label>
-          <div class="verify" id="ntMsg" aria-live="polite"></div>
-        </form>
-        <div id="threadList"></div>
-      </div>
-      <div class="convo" id="convo"></div>
-    </div>
-  </div></section>`;
-  const p = profile();
-  const open = async n => {
-    const msg = $('#ntMsg');
-    const threads = getThreads();
-    if (p && p.team && String(n) === String(p.team)) { msg.innerHTML = '<span class="bad">That\'s your own team.</span>'; return; }
-    if (!threads[n]) {
-      msg.innerHTML = '<span class="muted">Checking FTC Scout...</span>';
-      try {
-        const t = await fetchTeamBasic(+n);
-        if (!live(token)) return;
-        if (!t) { msg.innerHTML = '<span class="bad">No FTC team ' + esc(n) + ' on FTC Scout.</span>'; return; }
-        const fresh = getThreads();
-        fresh[n] = { name: t.name, place: locStr(t.location), website: safeUrl(t.website), drafts: [] };
-        saveThreads(fresh);
-        rememberName(n, t.name);
-      } catch (e) { if (live(token)) msg.innerHTML = '<span class="bad">' + esc(apiMessage(e)) + '</span>'; return; }
-    }
-    msg.textContent = '';
-    if (location.hash !== '#/messages/' + n) history.replaceState(null, '', '#/messages/' + n);
-    drawThreads(n);
-    drawConvo(n);
-  };
-  $('#newThread').addEventListener('submit', e => {
-    e.preventDefault();
-    const v = $('#ntIn').value.trim();
-    if (!/^\d{1,6}$/.test(v)) { $('#ntMsg').innerHTML = '<span class="bad">Enter a team number.</span>'; return; }
-    $('#ntIn').value = '';
-    open(v);
-  });
-  const drawThreads = active => {
-    const threads = getThreads();
-    const keys = Object.keys(threads).sort((a, b) => {
-      const la = (threads[a].drafts.slice(-1)[0] || {}).at || '', lb = (threads[b].drafts.slice(-1)[0] || {}).at || '';
-      return lb.localeCompare(la) || +a - +b;
-    });
-    $('#threadList').innerHTML = keys.length ? keys.map(k => {
-      const t = threads[k], last = t.drafts.slice(-1)[0];
-      return '<a class="thread" href="#/messages/' + k + '"' + (String(active) === k ? ' aria-current="true"' : '') + '><div class="hex sm"><span>' + esc(k) + '</span></div><div style="min-width:0"><div class="t">' + esc(t.name) + '</div><div class="s">' + esc(last ? last.text : t.place || 'No drafts yet') + '</div></div></a>';
-    }).join('') : '<p class="small muted" style="padding:14px">No conversations yet. Enter a team number above to start one.</p>';
-  };
-  const drawConvo = n => {
-    const box = $('#convo');
-    const threads = getThreads();
-    const t = n && threads[n];
-    if (!t) {
-      box.innerHTML = '<div class="empty" style="margin:auto"><h3>Pick a team to write to</h3><p class="small">Start a conversation with any team number, or use Message team on a scouting report.</p></div>';
-      return;
-    }
-    box.innerHTML = '<div class="convo-head"><div class="hex sm"><span>' + esc(n) + '</span></div><div style="flex:1;min-width:0"><h2 style="font-size:16px">' + esc(t.name) + '</h2><div class="small muted">' + esc(t.place || '') + '</div></div><div class="row">' +
-      (t.website ? extLink(t.website, 'Team website') : '') + '<a class="btn btn-ghost btn-sm" href="#/scouting/' + esc(n) + '">Scout</a><button class="btn btn-ghost btn-sm" id="delThread">Delete conversation</button></div></div>' +
-      '<div class="convo-body" id="drafts">' + (t.drafts.length ? t.drafts.map((d, i) => '<div class="draft"><p>' + esc(d.text) + '</p><div class="meta"><span>Draft, ' + esc(fmtDay(d.at.slice(0, 10))) + '</span><button data-copy="' + i + '">Copy</button><button data-del="' + i + '">Delete</button></div></div>').join('')
-        : '<div class="empty" style="margin:auto"><p class="small">No drafts yet. Write your first message below.</p></div>') + '</div>' +
-      '<form class="composer" id="composer"><label class="sr" for="draftIn">Message to ' + esc(t.name) + '</label><textarea id="draftIn" rows="2" maxlength="2000" placeholder="Write to ' + esc(t.name) + '..."></textarea><button class="btn btn-primary" type="submit">Save draft</button></form>';
-    const body = $('#drafts');
-    body.scrollTop = body.scrollHeight;
-    $('#composer').addEventListener('submit', e => {
-      e.preventDefault();
-      const v = $('#draftIn').value.trim();
-      if (!v) return;
-      const all = getThreads();
-      all[n].drafts.push({ text: v, at: new Date().toISOString() });
-      saveThreads(all);
-      drawThreads(n);
-      drawConvo(n);
-      $('#draftIn').focus();
-    });
-    $('#draftIn').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('#composer').requestSubmit(); });
-    $$('[data-copy]', box).forEach(b => b.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(t.drafts[+b.dataset.copy].text); b.textContent = 'Copied'; }
-      catch (e) { b.textContent = 'Copy blocked'; }
-      setTimeout(() => { if (b.isConnected) b.textContent = 'Copy'; }, 2000);
-    }));
-    $$('[data-del]', box).forEach(b => b.addEventListener('click', () => {
-      const all = getThreads();
-      all[n].drafts.splice(+b.dataset.del, 1);
-      saveThreads(all);
-      drawThreads(n);
-      drawConvo(n);
-    }));
-    let armed = false;
-    $('#delThread').addEventListener('click', e => {
-      const btn = e.currentTarget;
-      if (!armed) { armed = true; btn.textContent = 'Click again to delete'; setTimeout(() => { if (btn.isConnected) { armed = false; btn.textContent = 'Delete conversation'; } }, 4000); return; }
-      const all = getThreads();
-      delete all[n];
-      saveThreads(all);
-      history.replaceState(null, '', '#/messages');
-      drawThreads(null);
-      drawConvo(null);
-    });
-  };
-  drawThreads(target);
-  drawConvo(target && getThreads()[target] ? target : null);
-  if (target && !getThreads()[target]) open(target);
-}
-
 /* ================= Learning ================= */
 
 function renderLearning(el, args) {
@@ -1898,7 +1773,7 @@ function countUp(el) {
 }
 
 // Anything new that lands on the page eases in, in a short stagger.
-const REVEAL = '.page-head,.hero .wrap>*,.card,.erow,.resource,.ev,.dash-ev,.srow,.thread,.month,.season-bar,.notice,.filters,.tabbar,.chat,.empty';
+const REVEAL = '.page-head,.hero .wrap>*,.card,.erow,.resource,.ev,.dash-ev,.srow,.month,.season-bar,.notice,.filters,.tabbar,.empty';
 const COUNT = '.wlt b,.bar-top .val,.avg b,.ev .res b';
 let pending = [];
 function queueReveal(node) {
@@ -1913,7 +1788,7 @@ if (!REDUCED) {
     const had = pending.length;
     list.forEach(m => m.addedNodes.forEach(queueReveal));
     if (!had && pending.length) requestAnimationFrame(() => {
-      const batch = pending.filter(n => n.isConnected && !pending.some(o => o !== n && o.contains(n) && o.matches('.card,.chat')));
+      const batch = pending.filter(n => n.isConnected && !pending.some(o => o !== n && o.contains(n) && o.matches('.card')));
       pending = [];
       batch.forEach((n, i) => {
         n.style.setProperty('--d', Math.min(i * 40, 480) + 'ms');
@@ -1925,6 +1800,30 @@ if (!REDUCED) {
 } else {
   document.documentElement.classList.add('still');
 }
+
+
+/* ================= Theme ================= */
+
+const THEME_KEY = 'ftcentral.theme';
+const sysDark = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === 'dark' : !!(sysDark && sysDark.matches); };
+function syncTheme() {
+  const dark = isDark(), btn = $('#themeBtn');
+  document.documentElement.classList.toggle('theme-dark', dark);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = dark ? '#131619' : '#F6F4EE';
+  if (btn) { const l = 'Switch to ' + (dark ? 'light' : 'dark') + ' mode'; btn.setAttribute('aria-label', l); btn.title = l; }
+}
+$('#themeBtn').addEventListener('click', () => {
+  const next = isDark() ? 'light' : 'dark', root = document.documentElement;
+  if (!REDUCED) { root.classList.add('theme-swap'); clearTimeout(syncTheme.t); syncTheme.t = setTimeout(() => root.classList.remove('theme-swap'), 350); }
+  root.dataset.theme = next;
+  // Picking the same thing the OS already does means "follow the OS" again.
+  try { if (sysDark && sysDark.matches === (next === 'dark')) localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next); } catch (e) { /* storage blocked */ }
+  syncTheme();
+});
+if (sysDark) sysDark.addEventListener('change', () => { let saved = null; try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* storage blocked */ } if (!saved) delete document.documentElement.dataset.theme; syncTheme(); });
+syncTheme();
 
 /* ================= Start ================= */
 
