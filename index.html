@@ -289,6 +289,35 @@ footer.site p+p{margin-top:8px}
 footer.site strong{color:var(--text);font-weight:600}
 
 
+/* sharing */
+.pill-stack{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.mates{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.mates h3{margin-bottom:8px}
+.mate{padding:8px 0}
+.mate b{font-weight:600;margin-right:8px}
+.mate p{font-size:14px;color:var(--muted);margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+.dlg{margin:auto;width:min(480px,calc(100vw - 24px));max-height:calc(100dvh - 24px);border:0;border-radius:var(--r);background:var(--bg1);color:var(--text);padding:0;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:auto}
+.dlg::backdrop{background:rgba(20,22,25,.45);backdrop-filter:blur(3px)}
+.dlg[open]{animation:dlgIn .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes dlgIn{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 16px 0}
+.dlg-body{padding:16px 20px 22px}
+.dlg-x{width:36px;height:36px;border-radius:50%;font-size:24px;line-height:1;color:var(--muted);flex-shrink:0}
+.dlg-x:hover{background:var(--bg2);color:var(--text)}
+.seg{display:inline-flex;gap:2px;padding:4px;background:var(--bg2);border-radius:999px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg button{padding:7px 14px;font-size:13.5px;font-weight:500;color:var(--muted);border-radius:999px;white-space:nowrap}
+.seg button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.qrwrap{display:flex;justify-content:center;margin:6px 0 10px}
+.qrwrap canvas{border-radius:14px;box-shadow:var(--shadow)}
+.center{text-align:center}
+#shCode,#imCode{font-family:var(--mono);font-size:12px;word-break:break-all;resize:vertical}
+.scanbox{position:relative;border-radius:var(--r-sm);overflow:hidden;background:#000;margin-bottom:14px;aspect-ratio:4/3}
+.scanbox video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-frame{position:absolute;inset:18% 22%;border:3px solid var(--honey-fill);border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.35);pointer-events:none}
+.scanbox .btn{position:absolute;right:10px;bottom:10px}
+.mate-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.mate-row:last-child{border-bottom:0}
+
 /* shooter scene */
 .scene{margin-top:22px;text-align:center;background:linear-gradient(180deg,var(--bg1) 55%,color-mix(in srgb,var(--accent-soft) 60%,var(--bg1)))}
 .scene p{max-width:52ch;margin:6px auto 0}
@@ -629,7 +658,7 @@ function awardChips(awards, season) {
 
 /* ================= Storage (this browser only) ================= */
 
-const K = { profile: 'ftcentral.profile', notes: 'ftcentral.notes', ratings: 'ftcRatings', names: 'ftcentral.teamNames', msgs: 'ftcentral.messages' /* legacy, from the removed messages page */, region: 'ftcentral.region' };
+const K = { profile: 'ftcentral.profile', notes: 'ftcentral.notes', ratings: 'ftcRatings', names: 'ftcentral.teamNames', msgs: 'ftcentral.messages' /* legacy, from the removed messages page */, region: 'ftcentral.region', shared: 'ftcentral.shared', device: 'ftcentral.device', scoutName: 'ftcentral.scoutName' };
 const store = {
   get(key, fallback) { try { const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; } },
@@ -930,7 +959,7 @@ function profileSummary() {
       <button class="btn btn-ghost btn-sm" id="editProfile">Edit profile</button>
       <button class="btn btn-danger btn-sm" id="wipe">Delete my data</button>
     </div>
-    <p class="small dim" style="margin-top:14px">Saved in this browser only. Delete my data removes your profile, ratings and notes from this device.</p>`;
+    <p class="small dim" style="margin-top:14px">Saved in this browser only. Delete my data removes your profile, ratings, notes and teammates' lists from this device.</p>`;
   $('#editProfile').addEventListener('click', profileForm);
   const wipe = $('#wipe');
   let armed = false;
@@ -1561,7 +1590,15 @@ function ratingCardHtml(n) {
           </div>
         </div>
       </div>
+      ${teammatesHtml(n)}
     </div>`;
+}
+function teammatesHtml(n) {
+  const rows = Object.values(store.get(K.shared, {})).filter(sc => (sc.r && sc.r[n]) || (sc.t && sc.t[n]));
+  if (!rows.length) return '';
+  return '<div class="mates"><h3>From your teammates</h3>' + rows.map(sc => '<div class="mate"><b>' + esc(sc.name) + '</b>' +
+    (sc.r && sc.r[n] ? '<span class="pill" style="color:' + ratingColor(sc.r[n]) + '">' + sc.r[n] + '/10</span>' : '<span class="small dim">No rating</span>') +
+    (sc.t && sc.t[n] ? '<p>' + esc(sc.t[n]) + '</p>' : '') + '</div>').join('') + '</div>';
 }
 
 function flash(el, text) {
@@ -1619,34 +1656,54 @@ function wireNotes(n) {
 
 function scoutedTeams() {
   const ratings = store.get(K.ratings, {}), notes = store.get(K.notes, {}), names = store.get(K.names, {});
-  const nums = Array.from(new Set(Object.keys(ratings).concat(Object.keys(notes)))).filter(k => /^\d+$/.test(k));
-  return nums.map(k => ({ n: +k, name: names[k] || '', rating: ratings[k] || null, note: notes[k] || '' }))
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0) || a.n - b.n);
+  const shared = Object.values(store.get(K.shared, {}));
+  const keys = new Set(Object.keys(ratings).concat(Object.keys(notes)));
+  shared.forEach(sc => { Object.keys(sc.r || {}).forEach(k => keys.add(k)); Object.keys(sc.t || {}).forEach(k => keys.add(k)); });
+  return Array.from(keys).filter(k => /^\d+$/.test(k)).map(k => {
+    const others = shared.filter(sc => sc.r && sc.r[k]).map(sc => ({ by: sc.name, v: sc.r[k] }));
+    const otherNotes = shared.filter(sc => sc.t && sc.t[k]).map(sc => ({ by: sc.name, text: sc.t[k] }));
+    const all = (ratings[k] ? [ratings[k]] : []).concat(others.map(o => o.v));
+    const avg = all.length ? all.reduce((x, y) => x + y, 0) / all.length : null;
+    return { n: +k, name: names[k] || '', rating: ratings[k] || null, note: notes[k] || '', others, otherNotes, avg, count: all.length };
+  }).sort((a, b) => (b.avg || 0) - (a.avg || 0) || a.n - b.n);
+}
+const fmtAvg = v => (Math.round(v * 10) / 10).toString();
+function ratingPill(t) {
+  if (!t.avg) return '<span class="small dim">No rating</span>';
+  if (t.count < 2) return '<span class="pill" style="color:' + ratingColor(t.avg) + '">' + t.avg + '/10</span>';
+  const who = (t.rating ? ['You ' + t.rating] : []).concat(t.others.map(o => o.by + ' ' + o.v)).join(', ');
+  return '<span class="pill-stack"><span class="pill" style="color:' + ratingColor(Math.round(t.avg)) + '" title="' + esc(who) + '">' + fmtAvg(t.avg) + '/10</span><span class="small dim">' + t.count + ' scouts</span></span>';
 }
 function scoutListHtml(limit, compact) {
   const teams = scoutedTeams();
+  const teammates = Object.keys(store.get(K.shared, {})).length;
   if (!teams.length) {
-    if (!compact) return '';
+    if (!compact) return '<div class="card-head"><h2>Your scouting list</h2><div class="row"><button class="btn btn-ghost btn-sm" data-share="import">Add a teammate\'s list</button></div></div><p class="small muted">Rate or take notes on a team and it shows up here, ranked by rating. Got a scouting code from a teammate? Add it and their ratings merge in.</p>';
     return '<h2>Your scouting list</h2><p class="small muted" style="margin-top:8px">Rate or take notes on a team and it shows up here, ranked by your rating. Handy for alliance selection.</p><p class="small" style="margin-top:10px"><a href="#/scouting">Scout a team</a></p>';
   }
   const shown = limit ? teams.slice(0, limit) : teams;
-  return '<div class="card-head"><h2>Your scouting list</h2>' + (compact ? '' : '<div class="row"><button class="btn btn-ghost btn-sm" id="copyList">Copy list</button><button class="btn btn-ghost btn-sm" id="csvList">Download CSV</button></div>') + '</div>' +
-    '<div class="slist">' + shown.map(t => '<div class="srow"><div class="hex sm"><span>' + t.n + '</span></div><div style="min-width:0"><a href="#/scouting/' + t.n + '">' + esc(t.name || 'Team ' + t.n) + '</a>' + (t.note ? '<div class="note">' + esc(t.note) + '</div>' : '') + '</div>' +
-      (t.rating ? '<span class="pill" style="color:' + ratingColor(t.rating) + '">' + t.rating + '/10</span>' : '<span class="small dim">No rating</span>') + '</div>').join('') + '</div>' +
+  const noteOf = t => t.note || (t.otherNotes[0] ? t.otherNotes[0].by + ': ' + t.otherNotes[0].text : '');
+  return '<div class="card-head"><div><h2>Your scouting list</h2>' + (teammates ? '<p class="small muted">Merged with ' + teammates + ' teammate' + (teammates > 1 ? 's' : '') + '. Ranked by average rating.</p>' : '') + '</div>' +
+    (compact ? '' : '<div class="row"><button class="btn btn-primary btn-sm" data-share="share">Share</button><button class="btn btn-ghost btn-sm" data-share="import">Add a teammate\'s list</button><button class="btn btn-ghost btn-sm" id="copyList">Copy list</button><button class="btn btn-ghost btn-sm" id="csvList">CSV</button></div>') + '</div>' +
+    '<div class="slist">' + shown.map(t => '<div class="srow"><div class="hex sm"><span>' + t.n + '</span></div><div style="min-width:0"><a href="#/scouting/' + t.n + '">' + esc(t.name || 'Team ' + t.n) + '</a>' + (noteOf(t) ? '<div class="note">' + esc(noteOf(t)) + '</div>' : '') + '</div>' +
+      ratingPill(t) + '</div>').join('') + '</div>' +
     (limit && teams.length > limit ? '<p class="small" style="margin-top:10px"><a href="#/scouting">See all ' + teams.length + ' teams</a></p>' : '') +
     '<span class="small ok" id="listMsg" aria-live="polite"></span>';
 }
 function wireScoutList(root) {
   const copy = $('#copyList', root), csv = $('#csvList', root);
   const teams = scoutedTeams();
+  $$('[data-share]', root).forEach(b => b.addEventListener('click', () => openShare(b.dataset.share)));
   if (copy) copy.addEventListener('click', async () => {
-    const text = teams.map(t => t.n + (t.name ? ' ' + t.name : '') + ': ' + (t.rating ? t.rating + '/10' : 'no rating') + (t.note ? '. ' + t.note.replace(/\s+/g, ' ') : '')).join('\n');
+    const text = teams.map(t => t.n + (t.name ? ' ' + t.name : '') + ': ' + (t.avg ? fmtAvg(t.avg) + '/10' + (t.count > 1 ? ' (' + t.count + ' scouts)' : '') : 'no rating') +
+      [t.note ? 'You: ' + t.note : ''].concat(t.otherNotes.map(o => o.by + ': ' + o.text)).filter(Boolean).map(x => '. ' + x.replace(/\s+/g, ' ')).join('')).join('\n');
     try { await navigator.clipboard.writeText(text); flash($('#listMsg', root), 'Copied ' + teams.length + ' teams'); }
-    catch (e) { flash($('#listMsg', root), 'Your browser blocked copying. Use Download CSV instead.'); }
+    catch (e) { flash($('#listMsg', root), 'Your browser blocked copying. Use CSV instead.'); }
   });
   if (csv) csv.addEventListener('click', () => {
     const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-    const rows = [['Team', 'Name', 'Rating', 'Notes']].concat(teams.map(t => [t.n, t.name, t.rating || '', t.note]));
+    const rows = [['Team', 'Name', 'Average rating', 'Scouts', 'Your rating', 'Teammate ratings', 'Your notes', 'Teammate notes']].concat(teams.map(t => [
+      t.n, t.name, t.avg ? fmtAvg(t.avg) : '', t.count || '', t.rating || '', t.others.map(o => o.by + ' ' + o.v).join('; '), t.note, t.otherNotes.map(o => o.by + ': ' + o.text).join(' | ')]));
     const blob = new Blob([rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1673,6 +1730,269 @@ function refreshScoutList() {
     wrap.parentNode.appendChild(card);
     wireScoutList(card);
   }
+}
+
+
+/* ----- sharing scouting lists between teammates: QR code or copy-paste code, no server ----- */
+
+const QR_LIB = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+const JSQR_LIB = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+const loadedScripts = {};
+const loadScript = src => loadedScripts[src] || (loadedScripts[src] = new Promise((ok, fail) => {
+  const el = document.createElement('script');
+  el.src = src; el.async = true;
+  el.onload = ok; el.onerror = () => { delete loadedScripts[src]; fail(new Error('Could not load ' + src)); };
+  document.head.appendChild(el);
+}));
+
+function deviceId() {
+  let d = store.get(K.device, null);
+  if (!d) { d = Array.from(crypto.getRandomValues(new Uint8Array(6)), x => x.toString(16).padStart(2, '0')).join(''); store.set(K.device, d); }
+  return d;
+}
+const b64u = bytes => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64u = str => { const b = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const out = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) out[i] = b.charCodeAt(i); return out; };
+const canDeflate = (() => { try { new CompressionStream('deflate-raw'); new DecompressionStream('deflate-raw'); return true; } catch (e) { return false; } })();
+const pipe = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+
+// Format: "FTC1." + base64url(deflate(JSON)), or "FTC0." + base64url(JSON) on browsers without compression.
+async function packList(payload) {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  return canDeflate ? 'FTC1.' + b64u(await pipe(bytes, new CompressionStream('deflate-raw'))) : 'FTC0.' + b64u(bytes);
+}
+async function unpackList(text) {
+  const m = String(text).replace(/\s+/g, '').match(/FTC([01])\.([A-Za-z0-9_-]+)/);
+  if (!m) throw new Error('That doesn\'t look like an FTCentral scouting code.');
+  if (m[1] === '1' && !canDeflate) throw new Error('This browser is too old to read compressed codes. Try Chrome, Firefox or Safari 16.4+.');
+  let raw;
+  try { raw = unb64u(m[2]); if (m[1] === '1') raw = await pipe(raw, new DecompressionStream('deflate-raw')); }
+  catch (e) { throw new Error('The code is incomplete or got cut off. Copy all of it and try again.'); }
+  let p;
+  try { p = JSON.parse(new TextDecoder().decode(raw)); } catch (e) { throw new Error('The code is damaged. Ask for a fresh one.'); }
+  return cleanPayload(p);
+}
+// Never trust a pasted code: keep only well-formed team numbers, 1-10 ratings and plain-text notes.
+function cleanPayload(p) {
+  if (!p || p.v !== 1) throw new Error('This code is from a newer version of FTCentral, or isn\'t a scouting code.');
+  const team = k => /^\d{1,6}$/.test(k);
+  const r = {}, t = {}, m = {};
+  Object.entries(p.r || {}).forEach(([k, v]) => { if (team(k) && Number.isInteger(v) && v >= 1 && v <= 10) r[k] = v; });
+  Object.entries(p.t || {}).forEach(([k, v]) => { if (team(k) && typeof v === 'string' && v.trim()) t[k] = v.trim().slice(0, 4000); });
+  Object.entries(p.m || {}).forEach(([k, v]) => { if (team(k) && typeof v === 'string') m[k] = v.slice(0, 120); });
+  const name = String(p.by || '').trim().slice(0, 40) || 'A teammate';
+  const d = /^[0-9a-f]{12}$/.test(p.d) ? p.d : 'x' + name.toLowerCase();
+  const at = /^\d{4}-\d{2}-\d{2}$/.test(p.at) ? p.at : todayStr();
+  return { name, d, at, r, t, m };
+}
+function myPayload(name, withNotes) {
+  const r = store.get(K.ratings, {}), t = withNotes ? store.get(K.notes, {}) : {}, names = store.get(K.names, {});
+  const m = {};
+  if (withNotes) Object.keys(r).concat(Object.keys(t)).forEach(k => { if (names[k]) m[k] = names[k]; });
+  return { v: 1, d: deviceId(), by: name, at: todayStr(), r, t, m };
+}
+function scoutName() {
+  const p = profile();
+  return store.get(K.scoutName, '') || (p ? p.name : '');
+}
+
+// The FTCentral mark, drawn into the middle of the QR code.
+const MARK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="17" fill="#06727E"/><g fill="#fff" stroke="#fff" stroke-width="3.6" stroke-linecap="round"><path d="M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5" fill="none"/><circle cx="32" cy="15" r="4.6" stroke="none"/><circle cx="46.7" cy="40.5" r="4.6" stroke="none"/><circle cx="17.3" cy="40.5" r="4.6" stroke="none"/></g><circle cx="32" cy="32" r="7.5" fill="#fff"/><circle cx="32" cy="32" r="3" fill="#06727E"/></svg>';
+let markImg = null;
+const loadMark = () => markImg || (markImg = new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = 'data:image/svg+xml,' + encodeURIComponent(MARK_SVG); }));
+
+// High error correction lets the scanner rebuild the modules hidden under the logo.
+function makeQr(text) {
+  for (const level of ['H', 'Q']) {
+    try { const qr = qrcode(0, level); qr.addData(text, 'Byte'); qr.make(); return { qr, level }; } catch (e) { /* too long at this level */ }
+  }
+  return null;
+}
+async function drawQr(canvas, made) {
+  const { qr, level } = made, n = qr.getModuleCount(), quiet = 4, total = n + quiet * 2;
+  const css = Math.min(300, canvas.parentNode.clientWidth || 300), dpr = Math.max(2, window.devicePixelRatio || 1);
+  const px = Math.floor(css * dpr / total), size = px * total;
+  canvas.width = canvas.height = size;
+  canvas.style.width = canvas.style.height = css + 'px';
+  const g = canvas.getContext('2d');
+  g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, size, size);
+  g.fillStyle = '#1E2326';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) g.fillRect((c + quiet) * px, (r + quiet) * px, px, px);
+  const mark = await loadMark();
+  if (!mark) return;
+  // Keep the logo to ~6% of the code (H recovers 30%, Q 25%), centred on whole modules.
+  let box = Math.floor(n * (level === 'H' ? 0.24 : 0.2));
+  if ((n - box) % 2) box++;
+  const x0 = (quiet + (n - box) / 2) * px, pad = px * 0.6;
+  g.fillStyle = '#FFFFFF';
+  g.beginPath();
+  if (g.roundRect) g.roundRect(x0 - pad, x0 - pad, box * px + pad * 2, box * px + pad * 2, px * 1.6); else g.rect(x0 - pad, x0 - pad, box * px + pad * 2, box * px + pad * 2);
+  g.fill();
+  g.drawImage(mark, x0, x0, box * px, box * px);
+}
+
+let scanStop = null;
+function stopScan() { if (scanStop) { scanStop(); scanStop = null; } }
+async function startScan(video, onText, onError) {
+  stopScan();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return onError('This browser can\'t use the camera here. Paste the code instead.');
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }); }
+  catch (e) { return onError(e && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow it in your browser settings, or paste the code instead.' : 'No camera found. Paste the code instead.'); }
+  let running = true;
+  scanStop = () => { running = false; stream.getTracks().forEach(t => t.stop()); video.srcObject = null; };
+  video.srcObject = stream;
+  try { await video.play(); } catch (e) { /* autoplay quirk; frames still arrive */ }
+  let detect;
+  if ('BarcodeDetector' in window) {
+    try { if ((await BarcodeDetector.getSupportedFormats()).includes('qr_code')) { const bd = new BarcodeDetector({ formats: ['qr_code'] }); detect = async () => { const c = await bd.detect(video); return c[0] && c[0].rawValue; }; } } catch (e) { /* fall back */ }
+  }
+  if (!detect) {
+    try { await loadScript(JSQR_LIB); } catch (e) { stopScan(); return onError('Couldn\'t load the QR scanner. Check your connection, or paste the code instead.'); }
+    const cv = document.createElement('canvas'), cg = cv.getContext('2d', { willReadFrequently: true });
+    detect = async () => {
+      if (!video.videoWidth) return null;
+      const k = Math.min(1, 720 / Math.max(video.videoWidth, video.videoHeight));
+      cv.width = Math.round(video.videoWidth * k); cv.height = Math.round(video.videoHeight * k);
+      cg.drawImage(video, 0, 0, cv.width, cv.height);
+      const res = jsQR(cg.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'dontInvert' });
+      return res && res.data;
+    };
+  }
+  const tick = async () => {
+    if (!running) return;
+    let text = null;
+    try { text = await detect(); } catch (e) { /* frame not ready */ }
+    if (text && /FTC[01]\./.test(text)) { stopScan(); onText(text); return; }
+    setTimeout(tick, 160);
+  };
+  tick();
+}
+
+function openShare(tab) {
+  const old = $('#shareDlg');
+  if (old) old.remove();
+  const dlg = document.createElement('dialog');
+  dlg.id = 'shareDlg';
+  dlg.className = 'dlg';
+  dlg.innerHTML = `
+    <div class="dlg-head">
+      <div class="seg" role="tablist">
+        <button type="button" role="tab" data-tab="share">Share mine</button>
+        <button type="button" role="tab" data-tab="import">Add a teammate's</button>
+      </div>
+      <button type="button" class="dlg-x" aria-label="Close">&times;</button>
+    </div>
+    <div class="dlg-body" data-pane="share">
+      <label class="field"><span>Your name</span><input id="shName" maxlength="40" placeholder="So teammates know whose list this is" value="${esc(scoutName())}"></label>
+      <div id="shOut"></div>
+    </div>
+    <div class="dlg-body" data-pane="import" hidden>
+      <p class="small muted">Scan a teammate's QR code, or paste the code they copied for you. Their ratings merge into your list; yours stay untouched.</p>
+      <div class="row" style="margin:12px 0">
+        <button type="button" class="btn btn-primary btn-sm" id="imScan">Scan QR code</button>
+      </div>
+      <div class="scanbox" id="imCam" hidden><video playsinline muted></video><span class="scan-frame"></span><button type="button" class="btn btn-ghost btn-sm" id="imStop">Stop camera</button></div>
+      <label class="field"><span>Or paste a code</span><textarea id="imCode" rows="3" spellcheck="false" placeholder="FTC1.…"></textarea></label>
+      <div id="imPreview" aria-live="polite"></div>
+      <div id="imMates"></div>
+    </div>`;
+  document.body.appendChild(dlg);
+  const show = which => {
+    $$('[data-tab]', dlg).forEach(b => b.setAttribute('aria-selected', b.dataset.tab === which));
+    $$('[data-pane]', dlg).forEach(p => { p.hidden = p.dataset.pane !== which; });
+    if (which !== 'import') { stopScan(); $('#imCam', dlg).hidden = true; }
+    if (which === 'share') renderShareOut(dlg); else renderMates(dlg);
+  };
+  $$('[data-tab]', dlg).forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+  $('.dlg-x', dlg).addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => { stopScan(); dlg.remove(); refreshScoutList(); });
+  $('#shName', dlg).addEventListener('input', debounce(() => { store.set(K.scoutName, $('#shName', dlg).value.trim()); renderShareOut(dlg); }, 400));
+  const code = $('#imCode', dlg);
+  code.addEventListener('input', debounce(() => previewImport(dlg, code.value), 250));
+  $('#imScan', dlg).addEventListener('click', () => {
+    const cam = $('#imCam', dlg);
+    cam.hidden = false;
+    $('#imPreview', dlg).innerHTML = '<p class="small muted">Point the camera at the QR code.</p>';
+    startScan($('video', cam), text => { cam.hidden = true; code.value = text; previewImport(dlg, text); },
+      msg => { cam.hidden = true; $('#imPreview', dlg).innerHTML = '<div class="notice error">' + esc(msg) + '</div>'; });
+  });
+  $('#imStop', dlg).addEventListener('click', () => { stopScan(); $('#imCam', dlg).hidden = true; $('#imPreview', dlg).innerHTML = ''; });
+  dlg.showModal();
+  show(tab === 'import' ? 'import' : 'share');
+}
+
+async function renderShareOut(dlg) {
+  const out = $('#shOut', dlg);
+  const name = $('#shName', dlg).value.trim();
+  const mine = myPayload(name, true);
+  const nTeams = new Set(Object.keys(mine.r).concat(Object.keys(mine.t))).size;
+  if (!nTeams) { out.innerHTML = '<p class="small muted">You haven\'t rated or taken notes on any teams yet. Scout a few teams first, then come back here.</p>'; return; }
+  if (!name) { out.innerHTML = '<p class="small muted">Add your name and your code appears here.</p>'; return; }
+  const token = out._t = (out._t || 0) + 1;
+  out.innerHTML = '<p class="small muted">Making your code…</p>';
+  const full = await packList(mine);
+  try { await loadScript(QR_LIB); } catch (e) { /* no QR, the text code still works */ }
+  if (token !== out._t) return;
+  let made = window.qrcode ? makeQr(full) : null, qrNote = '';
+  if (window.qrcode && !made) {
+    made = makeQr(await packList(myPayload(name, false)));
+    qrNote = made ? 'Your notes are too long to fit in a QR code, so the QR has ratings only. Use the text code to send notes too.' : 'Your list is too big for a QR code. Use the text code below.';
+  }
+  if (token !== out._t) return;
+  out.innerHTML = (made ? '<div class="qrwrap"><canvas id="shQr" role="img" aria-label="QR code of your scouting list"></canvas></div>' : (window.qrcode ? '' : '<p class="small muted">The QR code couldn\'t load. The text code below still works.</p>')) +
+    (qrNote ? '<p class="small muted center">' + esc(qrNote) + '</p>' : '<p class="small muted center">' + nTeams + ' team' + (nTeams > 1 ? 's' : '') + ' from ' + esc(name) + '. Have a teammate scan this with FTCentral.</p>') +
+    '<label class="field" style="margin-top:14px"><span>Text code, for computers or chat</span><textarea id="shCode" rows="3" readonly spellcheck="false">' + esc(full) + '</textarea></label>' +
+    '<div class="row"><button type="button" class="btn btn-primary btn-sm" id="shCopy">Copy code</button><span class="small ok" id="shMsg" aria-live="polite"></span></div>';
+  if (made) await drawQr($('#shQr', out), made);
+  const box = $('#shCode', out);
+  box.addEventListener('focus', () => box.select());
+  $('#shCopy', out).addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(full); flash($('#shMsg', out), 'Copied. Paste it to a teammate.'); }
+    catch (e) { box.focus(); box.select(); flash($('#shMsg', out), 'Copying was blocked. The code is selected, so press Ctrl+C.'); }
+  });
+}
+
+async function previewImport(dlg, text) {
+  const box = $('#imPreview', dlg);
+  if (!text.trim()) { box.innerHTML = ''; return; }
+  let p;
+  try { p = await unpackList(text); } catch (e) { box.innerHTML = '<div class="notice error">' + esc(e.message) + '</div>'; return; }
+  if (p.d === store.get(K.device, null)) { box.innerHTML = '<div class="notice">That\'s your own list. Scan or paste a teammate\'s code instead.</div>'; return; }
+  const shared = store.get(K.shared, {});
+  const teams = new Set(Object.keys(p.r).concat(Object.keys(p.t))).size;
+  const again = shared[p.d];
+  box.innerHTML = '<div class="notice info"><b>' + esc(p.name) + '\'s list</b>, shared ' + esc(fmtDay(p.at)) + ': ' + teams + ' team' + (teams === 1 ? '' : 's') + ', ' +
+    Object.keys(p.r).length + ' rated, ' + Object.keys(p.t).length + ' with notes.' + (again ? ' This replaces the list you added from them on ' + esc(fmtDay(again.at)) + '.' : '') +
+    '<div class="row" style="margin-top:10px"><button type="button" class="btn btn-primary btn-sm" id="imAdd">' + (again ? 'Update their list' : 'Add to my list') + '</button></div></div>';
+  $('#imAdd', box).addEventListener('click', () => {
+    const all = store.get(K.shared, {});
+    all[p.d] = { name: p.name, at: p.at, r: p.r, t: p.t };
+    const names = store.get(K.names, {});
+    Object.entries(p.m).forEach(([k, v]) => { if (!names[k]) names[k] = v; });
+    store.set(K.names, names);
+    const ok = store.set(K.shared, all);
+    $('#imCode', dlg).value = '';
+    box.innerHTML = ok ? '<p class="small ok">Added ' + esc(p.name) + '\'s list. Scan or paste the next one.</p>' : '<div class="notice error">Couldn\'t save. Your browser is blocking storage.</div>';
+    renderMates(dlg);
+  });
+}
+
+function renderMates(dlg) {
+  const box = $('#imMates', dlg);
+  const all = store.get(K.shared, {});
+  const ids = Object.keys(all);
+  if (!ids.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<h3 class="sub">Teammates in your list</h3>' + ids.map(id => {
+    const sc = all[id], n = new Set(Object.keys(sc.r || {}).concat(Object.keys(sc.t || {}))).size;
+    return '<div class="mate-row"><div><b>' + esc(sc.name) + '</b><span class="small muted"> · ' + n + ' teams · ' + esc(fmtDay(sc.at)) + '</span></div><button type="button" class="btn btn-danger btn-sm" data-drop="' + esc(id) + '">Remove</button></div>';
+  }).join('');
+  $$('[data-drop]', box).forEach(b => b.addEventListener('click', () => {
+    const cur = store.get(K.shared, {});
+    delete cur[b.dataset.drop];
+    store.set(K.shared, cur);
+    renderMates(dlg);
+  }));
 }
 
 /* ================= Events ================= */
