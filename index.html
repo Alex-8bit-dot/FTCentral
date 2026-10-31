@@ -805,7 +805,14 @@ const PAGES = { home: renderHome, dashboard: renderDashboard, scouting: renderSc
 const TITLES = { dashboard: 'Dashboard', scouting: 'Scout a team', events: 'BIOBUZZ events', learning: 'Learning hub' };
 
 function route() {
-  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(p => { try { return decodeURIComponent(p); } catch (e) { return p; } });
+  let parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(p => { try { return decodeURIComponent(p); } catch (e) { return p; } });
+  // A scanned share link: #/i/FTC2.XXXX. Swap it for the scouting page so a reload doesn't re-open it.
+  if (parts[0] === 'i' && parts[1]) {
+    const code = parts.slice(1).join('/');
+    history.replaceState(null, '', '#/scouting');
+    parts = ['scouting'];
+    setTimeout(() => openShare('import', code), 50);
+  }
   const page = PAGES[parts[0]] ? parts[0] : 'home';
   const token = ++renderToken;
   $$('nav.tabs a').forEach(a => { if (a.dataset.page === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -1755,20 +1762,60 @@ const unb64u = str => { const b = atob(str.replace(/-/g, '+').replace(/_/g, '/')
 const canDeflate = (() => { try { new CompressionStream('deflate-raw'); new DecompressionStream('deflate-raw'); return true; } catch (e) { return false; } })();
 const pipe = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
 
-// Format: "FTC1." + base64url(deflate(JSON)), or "FTC0." + base64url(JSON) on browsers without compression.
+// Base32 (A-Z, 2-7) only uses characters from the QR code's alphanumeric mode, which packs
+// 5.5 bits per character instead of 8. Together with the compact format below, that makes the
+// code roughly a third less dense than JSON + base64, which is what phone cameras struggle with.
+const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+function b32(bytes) {
+  let bits = 0, val = 0, out = '';
+  for (const x of bytes) { val = ((val << 8) | x) & 0xffff; bits += 8; while (bits >= 5) { out += B32[(val >>> (bits - 5)) & 31]; bits -= 5; } }
+  if (bits > 0) out += B32[(val << (5 - bits)) & 31];
+  return out;
+}
+function unb32(str) {
+  const out = [];
+  let bits = 0, val = 0;
+  for (const ch of str.toUpperCase()) {
+    const i = B32.indexOf(ch);
+    if (i < 0) throw new Error('bad char');
+    val = ((val << 5) | i) & 0xffff; bits += 5;
+    if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; }
+  }
+  return new Uint8Array(out);
+}
+// Compact format: fields split by \x1d, records by \x1e, parts of a record by \x1f.
+// 1 · device id · scout name · date · ratings (team\x1fscore) · notes (team\x1ftext) · team names (team\x1fname)
+const GS = '\x1d', RS = '\x1e', US = '\x1f';
+const clip = v => String(v).replace(/[\x00-\x1f]/g, ' ');
+function toCompact(p) {
+  const recs = obj => Object.entries(obj).map(([k, v]) => k + US + clip(v)).join(RS);
+  return ['1', p.d, clip(p.by), p.at, recs(p.r), recs(p.t), recs(p.m)].join(GS);
+}
+function fromCompact(str) {
+  const f = str.split(GS);
+  const recs = x => Object.fromEntries((x || '').split(RS).filter(Boolean).map(r => { const i = r.indexOf(US); return [r.slice(0, i), r.slice(i + 1)]; }));
+  const r = recs(f[4]);
+  Object.keys(r).forEach(k => { r[k] = Number(r[k]); });
+  return { v: Number(f[0]), d: f[1], by: f[2], at: f[3], r, t: recs(f[5]), m: recs(f[6]) };
+}
+// "FTC2." + base32(deflate(compact)), or "FTC3." + base32(compact) on browsers without compression.
 async function packList(payload) {
-  const bytes = new TextEncoder().encode(JSON.stringify(payload));
-  return canDeflate ? 'FTC1.' + b64u(await pipe(bytes, new CompressionStream('deflate-raw'))) : 'FTC0.' + b64u(bytes);
+  const bytes = new TextEncoder().encode(toCompact(payload));
+  return canDeflate ? 'FTC2.' + b32(await pipe(bytes, new CompressionStream('deflate-raw'))) : 'FTC3.' + b32(bytes);
 }
 async function unpackList(text) {
-  const m = String(text).replace(/\s+/g, '').match(/FTC([01])\.([A-Za-z0-9_-]+)/);
-  if (!m) throw new Error('That doesn\'t look like an FTCentral scouting code.');
-  if (m[1] === '1' && !canDeflate) throw new Error('This browser is too old to read compressed codes. Try Chrome, Firefox or Safari 16.4+.');
+  const m = String(text).replace(/\s+/g, '').match(/FTC([0-3])\.([A-Za-z0-9_-]+)/);
+  if (!m) throw new Error('That doesn\'t look like an FTCentral scouting code or link.');
+  const kind = +m[1], deflated = kind === 1 || kind === 2;
+  if (deflated && !canDeflate) throw new Error('This browser is too old to read this code. Try Chrome, Firefox or Safari 16.4+.');
   let raw;
-  try { raw = unb64u(m[2]); if (m[1] === '1') raw = await pipe(raw, new DecompressionStream('deflate-raw')); }
-  catch (e) { throw new Error('The code is incomplete or got cut off. Copy all of it and try again.'); }
+  try {
+    raw = kind >= 2 ? unb32(m[2]) : unb64u(m[2]);
+    if (deflated) raw = await pipe(raw, new DecompressionStream('deflate-raw'));
+  } catch (e) { throw new Error('The code is incomplete or got cut off. Copy all of it and try again.'); }
   let p;
-  try { p = JSON.parse(new TextDecoder().decode(raw)); } catch (e) { throw new Error('The code is damaged. Ask for a fresh one.'); }
+  try { const txt = new TextDecoder().decode(raw); p = kind >= 2 ? fromCompact(txt) : JSON.parse(txt); }
+  catch (e) { throw new Error('The code is damaged. Ask for a fresh one.'); }
   return cleanPayload(p);
 }
 // Never trust a pasted code: keep only well-formed team numbers, 1-10 ratings and plain-text notes.
@@ -1780,8 +1827,8 @@ function cleanPayload(p) {
   Object.entries(p.t || {}).forEach(([k, v]) => { if (team(k) && typeof v === 'string' && v.trim()) t[k] = v.trim().slice(0, 4000); });
   Object.entries(p.m || {}).forEach(([k, v]) => { if (team(k) && typeof v === 'string') m[k] = v.slice(0, 120); });
   const name = String(p.by || '').trim().slice(0, 40) || 'A teammate';
-  const d = /^[0-9a-f]{12}$/.test(p.d) ? p.d : 'x' + name.toLowerCase();
-  const at = /^\d{4}-\d{2}-\d{2}$/.test(p.at) ? p.at : todayStr();
+  const d = /^[0-9a-f]{8,12}$/.test(p.d) ? p.d : 'x' + name.toLowerCase();
+  const at = /^\d{4}-\d{2}-\d{2}$/.test(p.at) && !isNaN(parseDay(p.at)) ? p.at : todayStr();
   return { name, d, at, r, t, m };
 }
 function myPayload(name, withNotes) {
@@ -1800,27 +1847,34 @@ const MARK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><r
 let markImg = null;
 const loadMark = () => markImg || (markImg = new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = 'data:image/svg+xml,' + encodeURIComponent(MARK_SVG); }));
 
-// High error correction lets the scanner rebuild the modules hidden under the logo.
-function makeQr(text) {
-  for (const level of ['H', 'Q']) {
-    try { const qr = qrcode(0, level); qr.addData(text, 'Byte'); qr.make(); return { qr, level }; } catch (e) { /* too long at this level */ }
-  }
-  return null;
+// The QR holds a link (byte mode) followed by the code (alphanumeric mode), so a phone's own
+// camera app opens FTCentral straight to the import screen. Level Q recovers 25% damage, plenty
+// for the logo, which covers about 4% of the code. Past version 14 (73x73) phones start to miss it.
+const QR_MAX_MODULES = 73;
+const shareBase = () => location.origin + location.pathname + '#/i/';
+function makeQr(code) {
+  try {
+    const qr = qrcode(0, 'Q');
+    qr.addData(shareBase(), 'Byte');
+    qr.addData(code, 'Alphanumeric');
+    qr.make();
+    return qr.getModuleCount() <= QR_MAX_MODULES ? { qr, level: 'Q' } : null;
+  } catch (e) { return null; }
 }
 async function drawQr(canvas, made) {
   const { qr, level } = made, n = qr.getModuleCount(), quiet = 4, total = n + quiet * 2;
-  const css = Math.min(300, canvas.parentNode.clientWidth || 300), dpr = Math.max(2, window.devicePixelRatio || 1);
+  const css = Math.min(320, canvas.parentNode.clientWidth || 320), dpr = Math.max(2, window.devicePixelRatio || 1);
   const px = Math.floor(css * dpr / total), size = px * total;
   canvas.width = canvas.height = size;
   canvas.style.width = canvas.style.height = css + 'px';
   const g = canvas.getContext('2d');
   g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, size, size);
-  g.fillStyle = '#1E2326';
+  g.fillStyle = '#000000';
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) g.fillRect((c + quiet) * px, (r + quiet) * px, px, px);
   const mark = await loadMark();
   if (!mark) return;
   // Keep the logo to ~6% of the code (H recovers 30%, Q 25%), centred on whole modules.
-  let box = Math.floor(n * (level === 'H' ? 0.24 : 0.2));
+  let box = Math.floor(n * 0.2);
   if ((n - box) % 2) box++;
   const x0 = (quiet + (n - box) / 2) * px, pad = px * 0.6;
   g.fillStyle = '#FFFFFF';
@@ -1862,13 +1916,13 @@ async function startScan(video, onText, onError) {
     if (!running) return;
     let text = null;
     try { text = await detect(); } catch (e) { /* frame not ready */ }
-    if (text && /FTC[01]\./.test(text)) { stopScan(); onText(text); return; }
+    if (text && /FTC[0-3]\./.test(text)) { stopScan(); onText(text); return; }
     setTimeout(tick, 160);
   };
   tick();
 }
 
-function openShare(tab) {
+function openShare(tab, prefill) {
   const old = $('#shareDlg');
   if (old) old.remove();
   const dlg = document.createElement('dialog');
@@ -1887,12 +1941,12 @@ function openShare(tab) {
       <div id="shOut"></div>
     </div>
     <div class="dlg-body" data-pane="import" hidden>
-      <p class="small muted">Scan a teammate's QR code, or paste the code they copied for you. Their ratings merge into your list; yours stay untouched.</p>
+      <p class="small muted">Scan a teammate's QR code, or paste the link they sent you. Their ratings merge into your list; yours stay untouched.</p>
       <div class="row" style="margin:12px 0">
         <button type="button" class="btn btn-primary btn-sm" id="imScan">Scan QR code</button>
       </div>
       <div class="scanbox" id="imCam" hidden><video playsinline muted></video><span class="scan-frame"></span><button type="button" class="btn btn-ghost btn-sm" id="imStop">Stop camera</button></div>
-      <label class="field"><span>Or paste a code</span><textarea id="imCode" rows="3" spellcheck="false" placeholder="FTC1.…"></textarea></label>
+      <label class="field"><span>Or paste a link or code</span><textarea id="imCode" rows="3" spellcheck="false" placeholder="https://…/#/i/FTC2.…"></textarea></label>
       <div id="imPreview" aria-live="polite"></div>
       <div id="imMates"></div>
     </div>`;
@@ -1920,6 +1974,7 @@ function openShare(tab) {
   $('#imStop', dlg).addEventListener('click', () => { stopScan(); $('#imCam', dlg).hidden = true; $('#imPreview', dlg).innerHTML = ''; });
   dlg.showModal();
   show(tab === 'import' ? 'import' : 'share');
+  if (prefill) { code.value = prefill; previewImport(dlg, prefill); }
 }
 
 async function renderShareOut(dlg) {
@@ -1932,24 +1987,25 @@ async function renderShareOut(dlg) {
   const token = out._t = (out._t || 0) + 1;
   out.innerHTML = '<p class="small muted">Making your code…</p>';
   const full = await packList(mine);
-  try { await loadScript(QR_LIB); } catch (e) { /* no QR, the text code still works */ }
+  const link = shareBase() + full;
+  try { await loadScript(QR_LIB); } catch (e) { /* no QR, the link still works */ }
   if (token !== out._t) return;
   let made = window.qrcode ? makeQr(full) : null, qrNote = '';
   if (window.qrcode && !made) {
     made = makeQr(await packList(myPayload(name, false)));
-    qrNote = made ? 'Your notes are too long to fit in a QR code, so the QR has ratings only. Use the text code to send notes too.' : 'Your list is too big for a QR code. Use the text code below.';
+    qrNote = made ? 'Your notes make the QR code too dense for phones to read, so it carries ratings only. Send the link below to share notes too.' : 'Your list is too big for a QR code. Send the link below instead.';
   }
   if (token !== out._t) return;
-  out.innerHTML = (made ? '<div class="qrwrap"><canvas id="shQr" role="img" aria-label="QR code of your scouting list"></canvas></div>' : (window.qrcode ? '' : '<p class="small muted">The QR code couldn\'t load. The text code below still works.</p>')) +
-    (qrNote ? '<p class="small muted center">' + esc(qrNote) + '</p>' : '<p class="small muted center">' + nTeams + ' team' + (nTeams > 1 ? 's' : '') + ' from ' + esc(name) + '. Have a teammate scan this with FTCentral.</p>') +
-    '<label class="field" style="margin-top:14px"><span>Text code, for computers or chat</span><textarea id="shCode" rows="3" readonly spellcheck="false">' + esc(full) + '</textarea></label>' +
-    '<div class="row"><button type="button" class="btn btn-primary btn-sm" id="shCopy">Copy code</button><span class="small ok" id="shMsg" aria-live="polite"></span></div>';
+  out.innerHTML = (made ? '<div class="qrwrap"><canvas id="shQr" role="img" aria-label="QR code of your scouting list"></canvas></div>' : (window.qrcode ? '' : '<p class="small muted">The QR code couldn\'t load. The link below still works.</p>')) +
+    (made ? '<p class="small muted center">' + (qrNote ? esc(qrNote) : nTeams + ' team' + (nTeams > 1 ? 's' : '') + ' from ' + esc(name) + '. Scan it with any phone camera to open it in FTCentral.') + ' Turn your screen brightness up if it won\'t pick up.</p>' : (qrNote ? '<p class="small muted">' + esc(qrNote) + '</p>' : '')) +
+    '<label class="field" style="margin-top:14px"><span>Link, for computers or chat</span><textarea id="shCode" rows="3" readonly spellcheck="false">' + esc(link) + '</textarea></label>' +
+    '<div class="row"><button type="button" class="btn btn-primary btn-sm" id="shCopy">Copy link</button><span class="small ok" id="shMsg" aria-live="polite"></span></div>';
   if (made) await drawQr($('#shQr', out), made);
   const box = $('#shCode', out);
   box.addEventListener('focus', () => box.select());
   $('#shCopy', out).addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(full); flash($('#shMsg', out), 'Copied. Paste it to a teammate.'); }
-    catch (e) { box.focus(); box.select(); flash($('#shMsg', out), 'Copying was blocked. The code is selected, so press Ctrl+C.'); }
+    try { await navigator.clipboard.writeText(link); flash($('#shMsg', out), 'Copied. Send it to a teammate.'); }
+    catch (e) { box.focus(); box.select(); flash($('#shMsg', out), 'Copying was blocked. The link is selected, so press Ctrl+C.'); }
   });
 }
 
