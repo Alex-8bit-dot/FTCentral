@@ -3,22 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FTCentral | FTC scouting, events and team tools</title>
+<title>FTC Central | FTC scouting, events and team tools</title>
 <meta name="description" content="Look up any FTC team's record, OPR and awards, find upcoming BIOBUZZ events, and keep scouting notes for alliance selection. Built by the MantaBots, FTC Team 27318.">
+<link rel="canonical" href="https://ftc-central.org/">
 <meta name="theme-color" content="#F4EFE3">
 <script>try{var t=localStorage.getItem('ftcentral.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="FTCentral">
-<meta property="og:title" content="FTCentral: scouting, events and team tools for FTC">
+<meta property="og:site_name" content="FTC Central">
+<meta property="og:title" content="FTC Central: scouting, events and team tools for FTC teams">
 <meta property="og:description" content="Live team stats from FTC Scout, every upcoming BIOBUZZ event, and a scouting list that stays on your device. Built by FTC Team 27318, the MantaBots.">
-<meta property="og:url" content="https://alex-8bit-dot.github.io/FTCentral/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='17' fill='%230F6670'/%3E%3Cg fill='%23fff' stroke='%23fff' stroke-width='3.6' stroke-linecap='round'%3E%3Cpath d='M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5' fill='none'/%3E%3Ccircle cx='32' cy='15' r='4.6' stroke='none'/%3E%3Ccircle cx='46.7' cy='40.5' r='4.6' stroke='none'/%3E%3Ccircle cx='17.3' cy='40.5' r='4.6' stroke='none'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='7.5' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%230F6670'/%3E%3C/svg%3E">
+<meta property="og:url" content="https://ftc-central.org/">
+<meta property="og:image" content="https://ftc-central.org/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The FTC Central logo and the line: Team stats, upcoming events and scouting lists for FTC teams, in one place.">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"FTC Central","url":"https://ftc-central.org/"}</script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='17' fill='%2306727E'/%3E%3Cg fill='%23fff' stroke='%23fff' stroke-width='3.6' stroke-linecap='round'%3E%3Cpath d='M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5' fill='none'/%3E%3Ccircle cx='32' cy='15' r='4.6' stroke='none'/%3E%3Ccircle cx='46.7' cy='40.5' r='4.6' stroke='none'/%3E%3Ccircle cx='17.3' cy='40.5' r='4.6' stroke='none'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='7.5' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%2306727E'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://api.ftcscout.org" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <!--
-  FTCentral, by the MantaBots (FTC Team 27318).
+  FTC Central, by the MantaBots (FTC Team 27318). Live at https://ftc-central.org/
+  FIRST trademark rules this page follows: FIRST is always in capitals and italics, a FIRST mark (FIRST, FTC,
+  game names) is never joined to another word, made plural or possessive, and its first use on a page gets its symbol.
   Team, match and event data comes from the FTC Scout GraphQL API (api.ftcscout.org).
   Everything a visitor types (profile, ratings, notes) is stored only in their own browser (localStorage).
   This page must be served from the web (GitHub Pages). Opened as a local file, FTC Scout will refuse the requests.
@@ -66,6 +77,9 @@ main{flex:1;outline:none}
 main:focus,main:focus-visible{outline:none}
 a{color:var(--accent);text-decoration:none;text-underline-offset:2px}
 a:hover{text-decoration:underline}
+/* links inside sentences are underlined too, so they don't rely on color alone */
+p a:not(.btn),li a:not(.btn),.notice a:not(.btn){text-decoration:underline;text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent)}
+p a:not(.btn):hover,li a:not(.btn):hover,.notice a:not(.btn):hover{text-decoration-color:currentColor}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select,textarea{font:inherit;color:var(--text);background:var(--bg2);border:1px solid transparent;border-radius:var(--r-sm);padding:10px 14px;width:100%;outline:none;transition:border-color .15s,box-shadow .15s}
@@ -92,6 +106,9 @@ textarea{resize:vertical}
 .brand:hover svg{transform:rotate(-4deg) scale(1.06)}
 .brand:hover .hub{transform:rotate(120deg)}
 .brand b{font-weight:700;color:var(--accent)}
+/* trademark symbols: small and raised, so FIRST marks read as plain text */
+sup.tm{font-size:.6em;line-height:0;vertical-align:super;margin-left:.04em;font-style:normal;letter-spacing:0}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-weight:500;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 nav.tabs{position:relative;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;align-self:stretch}
 .nav-ind{position:absolute;bottom:0;left:0;height:3px;width:0;border-radius:2px;background:var(--accent);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.3,.9,.3,1),width .35s cubic-bezier(.3,.9,.3,1),opacity .2s}
 nav.tabs::-webkit-scrollbar{display:none}
@@ -139,7 +156,7 @@ h3{font-size:15px;font-weight:600;line-height:1.35}
 .btn-sm{padding:6px 14px;font-size:13.5px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .ext::after{content:"";display:inline-block;width:.6em;height:.6em;margin-left:.2em;opacity:.7;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4 2h6v6M10 2 2 10' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat center/contain;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4 2h6v6M10 2 2 10' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat center/contain}
-.tag{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:2px 10px;border-radius:999px;background:var(--bg2);color:var(--muted);white-space:nowrap}
+.tag{display:inline-flex;align-items:center;gap:.3em;font-size:12px;font-weight:500;padding:2px 10px;border-radius:999px;background:var(--bg2);color:var(--muted);white-space:nowrap}
 .tag-honey{background:var(--honey-soft);color:var(--honey)}
 .tag-cyan{background:var(--accent-soft);color:var(--accent)}
 .notice{background:var(--honey-soft);border-radius:var(--r-sm);padding:14px 18px;font-size:14px;line-height:1.55}
@@ -419,9 +436,9 @@ nav.tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mas
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <div class="wrap">
-    <a class="brand" href="#/home" aria-label="FTCentral home">
+    <a class="brand" href="#/home" aria-label="FTC Central home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="17" fill="currentColor"/><g class="hub" fill="var(--bg1)" stroke="var(--bg1)" stroke-width="3.6" stroke-linecap="round"><path d="M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5" fill="none"/><circle cx="32" cy="15" r="4.6" stroke="none"/><circle cx="46.7" cy="40.5" r="4.6" stroke="none"/><circle cx="17.3" cy="40.5" r="4.6" stroke="none"/></g><circle cx="32" cy="32" r="7.5" fill="var(--bg1)"/><circle cx="32" cy="32" r="3" fill="currentColor"/></svg>
-      <span><b>FTC</b>entral</span>
+      <span>FTC Central</span>
     </a>
     <nav class="tabs" aria-label="Main">
       <a href="#/dashboard" data-page="dashboard">Dashboard</a>
@@ -435,18 +452,19 @@ nav.tabs.more{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mas
   </div>
 </header>
 
-<main id="main" tabindex="-1"></main>
+<main id="main" tabindex="-1"><noscript><section class="page"><div class="wrap"><h1>FTC Central</h1><p>FTC Central is a free site for <i>FIRST</i><sup class="tm">®</sup> Tech Challenge teams: look up any team's record, OPR and awards, find upcoming BIOBUZZ<sup class="tm">™</sup> events, and keep scouting notes for alliance selection. It needs JavaScript, so turn JavaScript on to use it. Made by the MantaBots, FTC<sup class="tm">®</sup> Team 27318.</p></div></section></noscript></main>
 
 <footer class="site">
   <div class="wrap">
     <div>
-      <p><strong>FTCentral</strong> is made by the <a href="https://mantabots.org" target="_blank" rel="noopener">MantaBots</a>, FTC Team <a href="#/scouting/27318">27318</a> at the French-American School of New York.</p>
-      <p>Team, match and event data comes from <a href="https://ftcscout.org" target="_blank" rel="noopener">FTC Scout</a>, which uses the official FIRST API. Match videos are from <a href="https://ftcvideos.org" target="_blank" rel="noopener">FTC Match Videos</a>.</p>
-      <p>FIRST&reg;, FIRST&reg; Tech Challenge and BIOBUZZ&trade; are trademarks of FIRST. FTCentral is a student project and is not run or endorsed by FIRST.</p>
+      <p><strong>FTC Central</strong> is made by the <a href="https://mantabots.org" target="_blank" rel="noopener">MantaBots</a>, FTC Team <a href="#/scouting/27318">27318</a> at the French-American School of New York.</p>
+      <p>Team, match and event data comes from <a href="https://ftcscout.org" target="_blank" rel="noopener">FTC Scout</a>, which uses the <a href="https://ftc-events.firstinspires.org/services/API" target="_blank" rel="noopener"><i>FIRST</i> Tech Challenge Events API</a>. Match videos are from <a href="https://ftcvideos.org" target="_blank" rel="noopener">FTC Match Videos</a>.</p>
+      <p>Questions or ideas? <a href="https://www.instagram.com/mantabots/" target="_blank" rel="noopener">DM us on Instagram</a> or email <a href="mailto:mantabots@gmail.com?subject=FTC%20Central">mantabots@gmail.com</a>.</p>
+      <p><i>FIRST</i><sup class="tm">®</sup>, <i>FIRST</i><sup class="tm">®</sup> Tech Challenge, FTC<sup class="tm">®</sup>, <i>FIRST</i><sup class="tm">®</sup> CANOPY<sup class="tm">™</sup>, BIOBUZZ<sup class="tm">™</sup>, DECODE<sup class="tm">™</sup>, INTO THE DEEP<sup class="tm">℠</sup>, CENTERSTAGE<sup class="tm">℠</sup> and POWERPLAY<sup class="tm">℠</sup> are trademarks of For Inspiration and Recognition of Science and Technology (<i>FIRST</i>, <a href="https://www.firstinspires.org" target="_blank" rel="noopener">firstinspires.org</a>), which is not overseeing, involved with, or responsible for this activity, product, or service. FTC Central is a student project by the MantaBots.</p>
     </div>
     <div>
       <p><strong>Your privacy</strong></p>
-      <p>FTCentral has no accounts, ads or tracking. Your profile, ratings and notes are saved only in this browser. The only thing sent anywhere is the team or event you look up, which goes to FTC Scout.</p>
+      <p>FTC Central has no accounts, ads or tracking. Your profile, ratings and notes are saved only in this browser. The only thing sent anywhere is the team or event you look up, which goes to FTC Scout.</p>
       <p><a href="https://github.com/Alex-8bit-dot/FTCentral" target="_blank" rel="noopener">Source code on GitHub</a></p>
     </div>
   </div>
@@ -507,10 +525,10 @@ const REGION_NAMES = Object.assign({}, ...REGION_GROUPS.map(g => g[1]));
 const isRegion = r => typeof r === 'string' && Object.prototype.hasOwnProperty.call(REGION_NAMES, r);
 
 const EVENT_TYPES = {
-  Scrimmage: 'Scrimmage', LeagueMeet: 'League meet', Qualifier: 'Qualifier', LeagueTournament: 'League tournament',
-  Championship: 'Championship', Other: 'Other', FIRSTChampionship: 'FIRST Championship', SuperQualifier: 'Super qualifier',
+  Scrimmage: 'Scrimmage', LeagueMeet: 'League Meet', Qualifier: 'Qualifier', LeagueTournament: 'League Tournament',
+  Championship: 'Championship', Other: 'Other', FIRSTChampionship: 'FIRST Championship', SuperQualifier: 'Super Qualifier',
   InnovationChallenge: 'Innovation Challenge', OffSeason: 'Off-season', Kickoff: 'Kickoff', Workshop: 'Workshop',
-  DemoExhibition: 'Demo', VolunteerSignup: 'Volunteer signup', PracticeDay: 'Practice day', Premier: 'Premier event',
+  DemoExhibition: 'Demo', VolunteerSignup: 'Volunteer signup', PracticeDay: 'Practice day', Premier: 'FIRST Premier Event',
   NonAdvancement: 'Scrimmage (non-advancing)', Pilot: 'Pilot'
 };
 const TYPE_FILTERS = {
@@ -527,26 +545,50 @@ const AWARD_NAMES = {
   Sustain: 'Sustain Award', Promote: 'Promote Award', Compass: 'Compass Award', JudgesChoice: "Judges' Choice Award",
   Winner: 'Winning Alliance', Finalist: 'Finalist Alliance', DivisionWinner: 'Division Winning Alliance',
   DivisionFinalist: 'Division Finalist Alliance', ConferenceFinalist: 'Conference Finalist Alliance', TopRanked: 'Top Ranked',
-  DeansListWinner: "Dean's List Winner", DeansListFinalist: "Dean's List Finalist", DeansListSemiFinalist: "Dean's List Semifinalist"
+  DeansListWinner: "Dean's List Winner", DeansListFinalist: "Dean's List Finalist", DeansListSemiFinalist: "Dean's List Semi-Finalist"
 };
 const ALLIANCE_AWARDS = ['Winner', 'Finalist', 'DivisionWinner', 'DivisionFinalist', 'ConferenceFinalist'];
 
-const RATING_LABELS = {
-  1: 'Very weak, avoid as a partner', 2: 'Below average', 3: 'Developing team', 4: 'Slightly below average',
-  5: 'Average competitor', 6: 'Solid team', 7: 'Strong competitor', 8: 'Top-tier team',
-  9: 'Elite, prioritize as a partner', 10: 'World-class team'
+// FIRST trademark rules (the FIRST Policy on the Use of FIRST Trademarks and Copyrighted Materials, and the FIRST
+// Branding & Design Guidelines): FIRST is always in capitals and italics; a FIRST mark is never joined to another word
+// (the reason this site is "FTC Central", not "FTCentral"), made plural or possessive, or hyphenated; and the first
+// time a mark appears on a page, in a heading and in body text, it gets its symbol.
+const SITE_NAME = 'FTC Central';
+const SITE_URL = 'https://ftc-central.org/';
+const tm = sym => '<sup class="tm">' + sym + '</sup>';
+const MK = { FIRST: '<i>FIRST</i>', FIRST_R: '<i>FIRST</i>' + tm('®'), FTC_R: 'FTC' + tm('®'), R: tm('®'), TM: tm('™') };
+// Italicizes FIRST inside text that is already escaped (award names, event types, event names).
+const ital = text => String(text).replace(/\bFIRST\b/g, MK.FIRST);
+// Game names are FIRST trademarks too: the newest carry ™ and the older ones ℠, as FIRST lists them.
+const GAME_MARKS = { 2026: '™', 2025: '™', 2024: '℠', 2023: '℠', 2022: '℠', 2021: '℠', 2020: '℠', 2019: '℠' };
+const seasonMark = y => esc(seasonName(y)) + (GAME_MARKS[y] ? tm(GAME_MARKS[y]) : '');
+const seasonMarkLabel = y => seasonMark(y) + (SEASONS[y] ? ' ' + esc(SEASONS[y][1]) : '');
+
+// How people reach the MantaBots (from mantabots.org).
+const CONTACT = {
+  email: 'mantabots@gmail.com',
+  instagram: 'https://www.instagram.com/mantabots/',
+  mailto: subject => 'mailto:mantabots@gmail.com?subject=' + encodeURIComponent(subject)
 };
-const ratingColor = v => (v <= 3 ? 'var(--red)' : v <= 6 ? 'var(--honey)' : v <= 8 ? 'var(--green)' : 'var(--accent)');
+
+// Gracious Professionalism: describe where a team is in its season, never put a team down.
+const RATING_LABELS = {
+  1: 'Just getting started', 2: 'Still developing', 3: 'Developing', 4: 'Getting more consistent',
+  5: 'Average competitor', 6: 'Solid team', 7: 'Strong competitor', 8: 'Top-tier team',
+  9: 'Elite, a top partner pick', 10: 'World-class team'
+};
+// Low ratings use a calm gray instead of warning red.
+const ratingColor = v => (v <= 4 ? 'var(--muted)' : v <= 6 ? 'var(--honey)' : v <= 8 ? 'var(--green)' : 'var(--accent)');
 
 const RESOURCES = {
   season: ['BIOBUZZ season', [
-    ['BIOBUZZ game and season', "FIRST's official season page with the game overview and key dates.", 'https://www.firstinspires.org/programs/ftc/game-and-season'],
+    ['Game and season page', 'The official page for BIOBUZZ presented by RTX, part of the ' + MK.FIRST_R + ' CANOPY' + MK.TM + ' season, with the game overview and a link to the season calendar.', 'https://www.firstinspires.org/programs/ftc/game-and-season'],
     ['Competition Manual (PDF)', 'The rulebook: game rules, robot rules, awards and how teams advance.', 'https://ftc-resources.firstinspires.org/ftc/game/manual'],
     ['Competition Manual, web version', 'The same manual as searchable web pages, split by section.', 'https://ftc-resources.firstinspires.org/ftc/game/cm-html'],
-    ['Ask the manual', "FIRST's chatbot that answers rules questions from the Competition Manual.", 'https://ftc-cmchatbot.firstinspires.org/'],
-    ['BIOBUZZ game animation', 'The official video that walks through a full match.', 'https://youtu.be/sUH3z5a5S9I'],
+    ['Ask the manual', 'The official chatbot from ' + MK.FIRST + ' that answers rules questions from the Competition Manual.', 'https://ftc-cmchatbot.firstinspires.org/'],
+    ['Game animation', 'The official video that walks through a full BIOBUZZ match.', 'https://youtu.be/sUH3z5a5S9I'],
     ['Gameplay card', 'One-page summary of the field and scoring.', 'https://www.firstinspires.org/hubfs/web/program/ftc/biobuzz-gamepostcard.pdf'],
-    ['Team updates and season materials', 'Rule changes FIRST publishes during the season, plus translations of the manual.', 'https://ftc-resources.firstinspires.org/ftc/game']
+    ['Team updates and season materials', 'Rule changes ' + MK.FIRST + ' publishes during the season, plus translations of the manual.', 'https://ftc-resources.firstinspires.org/ftc/game']
   ]],
   programming: ['Programming', [
     ['FTC Docs: programming', 'Official tutorials for Blocks, OnBot Java and Android Studio, plus vision and PID.', 'https://ftc-docs.firstinspires.org/en/latest/programming_resources/index.html'],
@@ -563,9 +605,9 @@ const RESOURCES = {
     ['Game Manual 0: robot design', 'Drivetrains, intakes, lifts and other mechanisms explained.', 'https://gm0.org/en/latest/']
   ]],
   data: ['Scouting and data', [
-    ['FTC Scout', 'Stats, OPR and match history for every team. FTCentral scouting runs on its data.', 'https://ftcscout.org'],
+    ['FTC Scout', 'Stats, OPR and match history for every team. Scouting on FTC Central runs on its data.', 'https://ftcscout.org'],
     ['FTC Match Videos', 'Match videos you can search by team number.', 'https://ftcvideos.org'],
-    ['FTC Event Web', "FIRST's official schedules, rankings and results for every event.", 'https://ftc-events.firstinspires.org']
+    ['FTC Event Web', 'Official schedules, rankings and results from ' + MK.FIRST + ' for every event.', 'https://ftc-events.firstinspires.org']
   ]]
 };
 
@@ -617,7 +659,34 @@ function safeUrl(u) {
 }
 const domainOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
 
-// FIRST's database shortens school names ("French American Sch of Ny-Sec"). Spell out the common abbreviations.
+// Event organizers type stream links into the FIRST system by hand, so the field can hold extra words
+// ("Twitch: twitch.tv/abc"), two links, or a placeholder like "TBD". Use the first real web address
+// in it, or nothing, and say which site the link opens.
+function streamLink(raw) {
+  const words = String(raw || '').trim().split(/[\s,;|]+/);
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i].replace(/^[(<\["']+/, '').replace(/[)>\]"'.,:!]+$/, '');
+    if (!/^(https?:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+([:/?#]|$)/i.test(word)) continue;
+    const url = safeUrl(word);
+    if (!url) continue;
+    let host;
+    try { host = new URL(url).hostname.toLowerCase(); } catch (e) { continue; }
+    if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(host)) continue;
+    const site = /(^|\.)(youtube\.com|youtu\.be)$/.test(host) ? 'YouTube'
+      : /(^|\.)twitch\.tv$/.test(host) ? 'Twitch'
+      : /(^|\.)facebook\.com$/.test(host) ? 'Facebook'
+      : /(^|\.)vimeo\.com$/.test(host) ? 'Vimeo' : null;
+    return { url, site };
+  }
+  return null;
+}
+function streamButton(s, now) {
+  const label = now ? 'Watch live' + (s.site ? ' on ' + s.site : '') : (s.site ? s.site + ' stream' : 'Livestream');
+  const hint = now ? 'The organizers\' stream for this event.' : 'The organizers\' stream. It only plays while the event is running.';
+  return '<a class="btn ' + (now ? 'btn-primary' : 'btn-ghost') + ' btn-sm ext" href="' + esc(s.url) + '" target="_blank" rel="noopener" title="' + esc(hint) + '">' + esc(label) + '</a>';
+}
+
+// The FIRST database shortens school names ("French American Sch of Ny-Sec"). Spell out the common abbreviations.
 function cleanSchool(name) {
   if (!name) return '';
   return String(name)
@@ -644,7 +713,8 @@ function cleanSchool(name) {
 
 function awardText(a, season) {
   const base = AWARD_NAMES[a.type] || a.type;
-  if (/^DeansList/.test(a.type)) return season >= 2025 ? base.replace("Dean's List", 'FIRST Leadership Award') : base;
+  // Dean's List became the FIRST Leadership Award in the 2025-26 season. FIRST writes its levels Semi-finalist, Finalist, Winner.
+  if (/^DeansList/.test(a.type)) return season >= 2025 ? base.replace("Dean's List", 'FIRST Leadership Award').replace('Semi-Finalist', 'Semi-finalist') : base;
   if (ALLIANCE_AWARDS.indexOf(a.type) !== -1) return base + (a.placement === 1 ? ' (captain)' : ' (' + ordinal(a.placement - 1) + ' pick)');
   if (a.type === 'TopRanked') return 'Top Ranked, ' + ordinal(a.placement);
   if (a.type === 'JudgesChoice' || !a.placement || a.placement === 1) return base;
@@ -653,7 +723,7 @@ function awardText(a, season) {
 function awardChips(awards, season) {
   const counts = new Map();
   awards.forEach(a => { const t = awardText(a, season); counts.set(t, (counts.get(t) || 0) + 1); });
-  return Array.from(counts).map(([t, c]) => '<span class="award">' + esc(t) + (c > 1 ? ' x' + c : '') + '</span>').join('');
+  return Array.from(counts).map(([t, c]) => '<span class="award">' + ital(esc(t)) + (c > 1 ? ' x' + c : '') + '</span>').join('');
 }
 
 /* ================= Storage (this browser only) ================= */
@@ -703,7 +773,7 @@ function gql(query, variables, ttl) {
 }
 function apiMessage(e) {
   switch (e && e.kind) {
-    case 'file': return 'FTCentral was opened as a file, so FTC Scout blocks its requests. Open it from its web address instead: alex-8bit-dot.github.io/FTCentral';
+    case 'file': return SITE_NAME + ' was opened as a file, so FTC Scout blocks its requests. Open it from its web address instead: ftc-central.org';
     case 'timeout': return 'FTC Scout took too long to answer. Try again in a moment.';
     case 'network': return 'Could not reach FTC Scout. Check your internet connection and try again.';
     case 'graphql': return 'FTC Scout could not answer that request (' + (e.message || 'unknown error') + ').';
@@ -818,7 +888,7 @@ function route() {
   $$('nav.tabs a').forEach(a => { if (a.dataset.page === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   renderMe();
   moveNavInd();
-  document.title = page === 'home' ? 'FTCentral | FTC scouting, events and team tools' : TITLES[page] + ' | FTCentral';
+  document.title = page === 'home' ? SITE_NAME + ' | FTC scouting, events and team tools' : TITLES[page] + ' | ' + SITE_NAME;
   PAGES[page](main, parts.slice(1), token);
   const path = page + '/' + parts.slice(1).join('/');
   if (lastPath !== path) window.scrollTo(0, 0);
@@ -843,7 +913,7 @@ function renderMe() {
 const honeyHex = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 56 18v28L32 60 8 46V18z" fill="none" stroke="currentColor" stroke-width="5"/></svg>';
 const skeleton = (label, lines) => '<div class="loading"><span class="pulse"></span>' + esc(label) + '</div>' + Array.from({ length: lines || 4 }, (_, i) => '<div class="skel" style="width:' + [100, 72, 88, 56, 80][i % 5] + '%"></div>').join('');
 const errorBox = (msg, retryId) => '<div class="notice error" role="alert">' + esc(msg) + (retryId ? ' <button class="btn btn-ghost btn-sm" id="' + retryId + '" style="margin-left:8px">Try again</button>' : '') + '</div>';
-const extLink = (href, label, cls) => '<a class="' + (cls || 'btn btn-ghost btn-sm') + ' ext" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(label) + '</a>';
+const extLink = (href, label, cls) => '<a class="' + (cls || 'btn btn-ghost btn-sm') + ' ext" href="' + esc(href) + '" target="_blank" rel="noopener">' + ital(esc(label)) + '</a>';
 
 function regionSelect(id, selected, includeMine) {
   const p = profile();
@@ -924,9 +994,9 @@ function renderHome(el, args, token) {
     ${FIELD_SVG}
     <div class="wrap">
       <div>
-        <div class="season-line">${honeyHex}${esc(seasonName(CURRENT_SEASON))} season, ${esc(SEASONS[CURRENT_SEASON][1])}</div>
-        <h1>Every FTC team's stats and every <mark>BIOBUZZ</mark> event, in one place.</h1>
-        <p class="lead">Look up any team's record, OPR and awards from FTC Scout, see which events are coming up near you, and keep ratings and notes for alliance selection. Made by FTC Team 27318, the MantaBots.</p>
+        <div class="season-line">${honeyHex}<span>${seasonMark(CURRENT_SEASON)} presented by RTX, the ${esc(SEASONS[CURRENT_SEASON][1])} season</span></div>
+        <h1>Every FTC${MK.R} team's stats and every <mark>BIOBUZZ${MK.TM}</mark> event, in one place.</h1>
+        <p class="lead">Look up any team's record, OPR and awards from FTC Scout, see which events are coming up near you, and keep ratings and notes for alliance selection. Made by FTC${MK.R} Team 27318, the MantaBots.</p>
         <form class="lookup" id="heroForm" role="search" autocomplete="off">
           <label class="sr" for="heroInput">Team number or name</label>
           <input id="heroInput" placeholder="Team number or name" inputmode="search">
@@ -999,7 +1069,7 @@ function profileForm() {
         <button class="btn btn-primary" type="submit">Save profile</button>
         ${p.name ? '<button class="btn btn-ghost" type="button" id="cancelEdit">Cancel</button>' : ''}
       </div>
-      <p class="small dim" style="margin-top:14px">Saved in this browser only. FTCentral doesn't have accounts yet, so nothing here is sent anywhere. Your team number is checked against FTC Scout.</p>
+      <p class="small dim" style="margin-top:14px">Saved in this browser only. ${SITE_NAME} doesn't have accounts, so nothing here is sent anywhere. Your team number is checked against FTC Scout.</p>
     </form>`;
   let verified = p.team ? { team: String(p.team), name: p.teamName, region: p.region } : null;
   const teamField = $('#teamField'), roleSel = $('#pRole'), teamIn = $('#pTeam'), vBox = $('#pVerify');
@@ -1011,7 +1081,7 @@ function profileForm() {
     verified = null;
     if (!v) { vBox.textContent = ''; return null; }
     if (!/^\d{1,6}$/.test(v)) { vBox.innerHTML = '<span class="bad">Team numbers are digits only.</span>'; return null; }
-    vBox.innerHTML = '<span class="muted">Checking FTC Scout...</span>';
+    vBox.innerHTML = '<span class="muted">Checking FTC Scout…</span>';
     try {
       const t = await fetchTeamBasic(+v);
       if (teamIn.value.trim() !== v) return null;
@@ -1055,7 +1125,7 @@ function renderDashboard(el, args, token) {
   <section class="page"><div class="wrap">
     <div class="page-head">
       <h1>${p ? 'Hi ' + esc(p.name) : 'Dashboard'}</h1>
-      <p>The ${esc(seasonLabel(CURRENT_SEASON))} season is underway. ${p && p.team ? 'Here is what is coming up for Team ' + esc(p.team) + '.' : '<a href="#/home">Set up your profile</a> to see your own team here.'}</p>
+      <p>${seasonMark(CURRENT_SEASON)}, the ${esc(SEASONS[CURRENT_SEASON][1])} ${MK.FIRST_R} Tech Challenge season, is underway. ${p && p.team ? 'Here is what is coming up for Team ' + esc(p.team) + '.' : '<a href="#/home">Set up your profile</a> to see your own team here.'}</p>
     </div>
     <div class="grid-main">
       <div class="stack">
@@ -1070,7 +1140,7 @@ function renderDashboard(el, args, token) {
   </div></section>`;
   dashEvents(token);
   dashTeam(token);
-  $('#dRes').innerHTML = '<h2 style="margin-bottom:12px">BIOBUZZ resources</h2>' + RESOURCES.season[1].slice(0, 6).map(r =>
+  $('#dRes').innerHTML = '<h2 style="margin-bottom:12px">' + seasonMark(CURRENT_SEASON) + ' resources</h2>' + RESOURCES.season[1].slice(0, 6).map(r =>
     '<a class="mini-ev" href="' + esc(r[2]) + '" target="_blank" rel="noopener" style="color:var(--text)"><span class="ext">' + esc(r[0]) + '</span></a>').join('') +
     '<p class="small" style="margin-top:12px"><a href="#/learning">All learning resources</a></p>';
   $('#dList').innerHTML = scoutListHtml(5, true);
@@ -1089,8 +1159,8 @@ function dashEvents(token) {
     const evs = (d.eventsSearch || []).filter(e => e.type !== 'VolunteerSignup' && String(e.end || e.start) >= t).sort((a, b) => a.start.localeCompare(b.start) || a.name.localeCompare(b.name));
     if (!evs.length) { list.innerHTML = '<div class="empty"><h3>No upcoming events listed here yet</h3><p class="small">Try a bigger region, like United States or Worldwide.</p></div>'; return; }
     const nextBig = evs.find(e => BIG_TYPES.indexOf(e.type) !== -1);
-    list.innerHTML = (nextBig ? '<div class="notice" style="margin-bottom:12px">Next qualifying event: <b>' + esc(nextBig.name) + '</b>, ' + esc(fmtRange(nextBig.start, nextBig.end)) + ' (' + esc(relDay(nextBig.start, nextBig.end).toLowerCase()) + ')</div>' : '') +
-      evs.slice(0, 6).map(e => '<div class="dash-ev"><div class="edate">' + esc(fmtDay(e.start, false)) + '<small>' + esc(relDay(e.start, e.end)) + '</small></div><div><a href="https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener">' + esc(e.name) + '</a><div class="small muted">' + esc(EVENT_TYPES[e.type] || e.type) + (locStr(e.location) ? ', ' + esc(locStr(e.location)) : '') + '</div></div></div>').join('') +
+    list.innerHTML = (nextBig ? '<div class="notice" style="margin-bottom:12px">Next qualifying event: <b>' + ital(esc(nextBig.name)) + '</b>, ' + esc(fmtRange(nextBig.start, nextBig.end)) + ' (' + esc(relDay(nextBig.start, nextBig.end).toLowerCase()) + ')</div>' : '') +
+      evs.slice(0, 6).map(e => '<div class="dash-ev"><div class="edate">' + esc(fmtDay(e.start, false)) + '<small>' + esc(relDay(e.start, e.end)) + '</small></div><div><a href="https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener">' + ital(esc(e.name)) + '</a><div class="small muted">' + ital(esc(EVENT_TYPES[e.type] || e.type)) + (locStr(e.location) ? ', ' + esc(locStr(e.location)) : '') + '</div></div></div>').join('') +
       '<p class="small" style="margin-top:12px"><a href="#/events/' + encodeURIComponent(region) + '">See all ' + fmtInt(evs.length) + ' upcoming events in ' + esc(REGION_NAMES[region]) + '</a></p>';
   }).catch(e => {
     if (!live(token) || !list.isConnected) return;
@@ -1116,12 +1186,12 @@ function dashTeam(token) {
     const prev = prevT ? summarize(prevT, CURRENT_SEASON - 1) : null;
     let html = '<div class="profile-head" style="margin-bottom:10px"><div class="hex honey sm"><span>' + n + '</span></div><div><h2>' + esc(curT.name) + '</h2><div class="small muted">' + esc(cleanSchool(curT.schoolName)) + '</div></div></div>';
     html += '<div class="sub">BIOBUZZ events</div>';
-    html += cur.upcoming.length ? cur.upcoming.map(e => '<div class="mini-ev"><span class="num">' + esc(fmtDay(e.start, false)) + '</span><span>' + esc(e.name) + ' <span class="dim small">' + esc(relDay(e.start, e.end).toLowerCase()) + '</span></span></div>').join('')
-      : '<p class="small muted">Not registered for any BIOBUZZ events on FTC Scout yet. Registrations appear here once FIRST publishes them.</p>';
+    html += cur.upcoming.length ? cur.upcoming.map(e => '<div class="mini-ev"><span class="num">' + esc(fmtDay(e.start, false)) + '</span><span>' + ital(esc(e.name)) + ' <span class="dim small">' + esc(relDay(e.start, e.end).toLowerCase()) + '</span></span></div>').join('')
+      : '<p class="small muted">Not registered for any BIOBUZZ events on FTC Scout yet. Registrations appear here once ' + MK.FIRST + ' publishes them.</p>';
     if (cur.hasData) {
       html += '<div class="sub">BIOBUZZ so far</div><p class="small">' + cur.rec.w + '-' + cur.rec.l + '-' + cur.rec.t + ' in ' + cur.played + ' matches' + (cur.qs ? ', total OPR ' + cur.qs.tot.value.toFixed(1) + ' (#' + fmtInt(cur.qs.tot.rank) + ' of ' + fmtInt(cur.qs.count) + ')' : '') + '</p>';
     } else if (prev && prev.hasData) {
-      html += '<div class="sub">Last season, ' + esc(seasonLabel(prev.season)) + '</div><p class="small">' + prev.rec.w + '-' + prev.rec.l + '-' + prev.rec.t + ' in ' + prev.played + ' matches' + (prev.qs ? ', total OPR ' + prev.qs.tot.value.toFixed(1) + ', ranked #' + fmtInt(prev.qs.tot.rank) + ' of ' + fmtInt(prev.qs.count) + ' worldwide' : '') + '</p>' + (prev.awards.length ? '<div class="awards">' + awardChips(prev.awards, prev.season) + '</div>' : '');
+      html += '<div class="sub">Last season, ' + seasonMarkLabel(prev.season) + '</div><p class="small">' + prev.rec.w + '-' + prev.rec.l + '-' + prev.rec.t + ' in ' + prev.played + ' matches' + (prev.qs ? ', total OPR ' + prev.qs.tot.value.toFixed(1) + ', ranked #' + fmtInt(prev.qs.tot.rank) + ' of ' + fmtInt(prev.qs.count) + ' worldwide' : '') + '</p>' + (prev.awards.length ? '<div class="awards">' + awardChips(prev.awards, prev.season) + '</div>' : '');
     }
     html += '<div class="links"><a class="btn btn-primary btn-sm" href="#/scouting/' + n + '">Full scouting report</a></div>';
     box.innerHTML = html;
@@ -1339,7 +1409,7 @@ function renderScouting(el, args, token) {
   <section class="page"><div class="wrap">
     <div class="page-head">
       <h1>Scout a team</h1>
-      <p>Record, OPR, awards and events for any FTC team, straight from FTC Scout. Your ratings and notes stay on this device.</p>
+      <p>Record, OPR, awards and events for any FTC${MK.R} team, from FTC Scout and the official ${MK.FIRST_R} results. Your ratings and notes stay on this device.</p>
     </div>
     <form class="searchbar" id="scoutForm" role="search" autocomplete="off">
       <label class="sr" for="scoutInput">Team number or name</label>
@@ -1384,7 +1454,7 @@ function wireSearch(token) {
     const v = input.value.trim();
     // FTC Scout can take a second or two to answer a name search, so say so right away.
     if (v.length >= 2 && !/^\d+$/.test(v) && (sug.hidden || !$('button[data-n]', sug))) {
-      sug.innerHTML = '<div class="empty small">Searching FTC Scout...</div>';
+      sug.innerHTML = '<div class="empty small">Searching FTC Scout…</div>';
       sug.hidden = false;
     }
     search(v);
@@ -1409,7 +1479,7 @@ function wireSearch(token) {
 async function runNameSearch(v, token) {
   const sug = $('#suggest');
   if (!sug) return;
-  sug.innerHTML = '<div class="empty small">Searching FTC Scout...</div>';
+  sug.innerHTML = '<div class="empty small">Searching FTC Scout…</div>';
   sug.hidden = false;
   try {
     const d = await gql(Q_TEAM_SEARCH, { q: v });
@@ -1451,7 +1521,7 @@ async function loadScout(n, explicitSeason, token) {
           const o = oT ? summarize(oT, older) : null;
           if (o && o.hasData) {
             shown = o;
-            note = '<b>' + esc(curT.name) + '</b> hasn\'t played a ' + esc(seasonName(CURRENT_SEASON)) + ' match yet and played no ' + esc(seasonName(CURRENT_SEASON - 1)) + ' matches. Showing ' + esc(seasonLabel(older)) + ', their most recent season.';
+            note = '<b>' + esc(curT.name) + '</b> hasn\'t played a ' + esc(seasonName(CURRENT_SEASON)) + ' match yet and played no ' + seasonMark(CURRENT_SEASON - 1) + ' matches. Showing ' + esc(seasonLabel(older)) + ', their most recent season.';
           }
         }
         if (!note) note = '<b>' + esc(curT.name) + '</b> has no matches on FTC Scout from ' + esc(seasonName(MIN_STATS_SEASON)) + ' onward. They may be new this season.';
@@ -1474,7 +1544,7 @@ function seasonChips(team, shownSeason) {
   const list = Array.from(set).sort((a, b) => b - a);
   const older = (team.activeSeasons || []).some(s => s < MIN_STATS_SEASON);
   return '<div class="season-bar" role="group" aria-label="Season"><span>Season</span>' + list.map(s =>
-    '<a class="chip' + (s === CURRENT_SEASON ? ' now' : '') + '" href="#/scouting/' + team.number + '/' + s + '"' + (s === shownSeason ? ' aria-current="true"' : '') + '>' + esc(seasonName(s)) + '</a>').join('') +
+    '<a class="chip' + (s === CURRENT_SEASON ? ' now' : '') + '" href="#/scouting/' + team.number + '/' + s + '"' + (s === shownSeason ? ' aria-current="true"' : '') + '>' + seasonMark(s) + '</a>').join('') +
     (older ? '<a class="small ext" href="https://ftcscout.org/teams/' + team.number + '" target="_blank" rel="noopener" style="margin-left:6px">Older seasons</a>' : '') + '</div>';
 }
 
@@ -1498,7 +1568,7 @@ function resultHtml(team, cur, shown, note) {
       <dl class="facts">${facts.map(f => '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>').join('')}</dl>
       ${shown.awards.length ? '<div class="sub">Awards in ' + esc(seasonLabel(s)) + '</div><div class="awards">' + awardChips(shown.awards, s) + '</div>' : ''}
       <div class="sub">${esc(seasonName(CURRENT_SEASON))} events</div>
-      ${upcoming.length ? upcoming.map(e => '<div class="mini-ev"><span class="num">' + esc(fmtDay(e.start, false)) + '</span><a href="https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener" style="color:var(--text)">' + esc(e.name) + '</a></div>').join('')
+      ${upcoming.length ? upcoming.map(e => '<div class="mini-ev"><span class="num">' + esc(fmtDay(e.start, false)) + '</span><a href="https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener" style="color:var(--text)">' + ital(esc(e.name)) + '</a></div>').join('')
         : '<p class="small muted">No ' + esc(seasonName(CURRENT_SEASON)) + ' events registered on FTC Scout yet.</p>'}
       <div class="links">
         ${extLink('https://ftcscout.org/teams/' + n + '?season=' + s, 'FTC Scout page')}
@@ -1521,7 +1591,7 @@ function resultHtml(team, cur, shown, note) {
 function perfHtml(sum, team) {
   const s = sum.season;
   if (!sum.hasData) {
-    return '<div class="card"><h2>' + esc(seasonLabel(s)) + '</h2><div class="empty"><h3>No ' + esc(seasonName(s)) + ' matches yet</h3><p class="small">' + (s === CURRENT_SEASON ? 'Stats show up here after this team plays its first BIOBUZZ event.' : 'This team played no matches that season.') + '</p></div></div>';
+    return '<div class="card"><h2>' + seasonMarkLabel(s) + '</h2><div class="empty"><h3>No ' + esc(seasonName(s)) + ' matches yet</h3><p class="small">' + (s === CURRENT_SEASON ? 'Stats show up here after this team plays its first BIOBUZZ event.' : 'This team played no matches that season.') + '</p></div></div>';
   }
   const r = sum.rec, q = sum.quals, qs = sum.qs;
   const bar = (label, st) => {
@@ -1532,7 +1602,7 @@ function perfHtml(sum, team) {
   };
   return `
     <div class="card">
-      <h2 style="margin-bottom:14px">${esc(seasonLabel(s))}</h2>
+      <h2 style="margin-bottom:14px">${seasonMarkLabel(s)}</h2>
       <div class="wlt">
         <div><b style="color:var(--green)">${r.w}</b><span>Wins</span></div>
         <div><b style="color:var(--red)">${r.l}</b><span>Losses</span></div>
@@ -1549,11 +1619,11 @@ function perfHtml(sum, team) {
 function eventsHtml(sum) {
   if (!sum.events.length) return '';
   const s = sum.season;
-  return '<div class="card full"><h2 style="margin-bottom:14px">Events in ' + esc(seasonLabel(s)) + '</h2><div class="ev-grid">' + sum.events.map(e => {
+  return '<div class="card full"><h2 style="margin-bottom:14px">Events in ' + seasonMarkLabel(s) + '</h2><div class="ev-grid">' + sum.events.map(e => {
     const st = e.stats;
-    return '<div class="ev"><h3><a href="https://ftcscout.org/events/' + s + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener">' + esc(e.name) + '</a></h3>' +
+    return '<div class="ev"><h3><a href="https://ftcscout.org/events/' + s + '/' + encodeURIComponent(e.code) + '" target="_blank" rel="noopener">' + ital(esc(e.name)) + '</a></h3>' +
       '<div class="meta">' + esc(fmtRange(e.start, e.end)) + (locStr(e.location) ? ', ' + esc(locStr(e.location)) : '') + '</div>' +
-      '<div class="meta"><span class="tag" style="margin-top:6px">' + esc(EVENT_TYPES[e.type] || e.type) + '</span></div>' +
+      '<div class="meta"><span class="tag" style="margin-top:6px">' + ital(esc(EVENT_TYPES[e.type] || e.type)) + '</span></div>' +
       (st ? '<div class="res"><span>Rank <b>' + st.rank + '</b></span><span>Quals record <b>' + st.wins + '-' + st.losses + '-' + st.ties + '</b></span>' + (st.opr && st.opr.totalPointsNp != null ? '<span>OPR <b>' + st.opr.totalPointsNp.toFixed(1) + '</b></span>' : '') + '</div>'
         : '<div class="res muted">' + (String(e.end || e.start) >= todayStr() ? 'Coming up, ' + esc(relDay(e.start, e.end).toLowerCase()) : 'No ranking data') + '</div>') +
       (e.awards.length ? '<div class="awards">' + awardChips(e.awards, s) + '</div>' : '') + '</div>';
@@ -1578,7 +1648,7 @@ function ratingCardHtml(n) {
             <input type="range" id="rateIn" min="1" max="10" step="1" value="${v}">
             <div class="rate-num" id="rateNum" style="color:${ratingColor(v)}">${v}</div>
           </div>
-          <div class="rate-scale"><span>1 Weak</span><span>5 Average</span><span>10 Elite</span></div>
+          <div class="rate-scale"><span>1 Developing</span><span>5 Average</span><span>10 Elite</span></div>
           <div class="rate-label" id="rateLabel">${esc(RATING_LABELS[v])}</div>
           <div class="row" style="margin-top:10px">
             <button class="btn btn-primary btn-sm" id="rateSave">Save rating</button>
@@ -1590,7 +1660,7 @@ function ratingCardHtml(n) {
           <h2>Your notes</h2>
           <p class="small muted" style="margin:4px 0 14px">Robot strengths, auto routines, driver skill, anything for alliance selection.</p>
           <label class="sr" for="noteIn">Notes about Team ${n}</label>
-          <textarea id="noteIn" rows="5" maxlength="4000" placeholder="Example: fast intake, reliable 3-piece auto, struggles with endgame">${esc(notes[n] || '')}</textarea>
+          <textarea id="noteIn" rows="5" maxlength="4000" placeholder="Example: fast intake, reliable 3-piece auto, endgame still in progress">${esc(notes[n] || '')}</textarea>
           <div class="row" style="margin-top:10px">
             <button class="btn btn-primary btn-sm" id="noteSave">Save notes</button>
             <span class="small ok" id="noteMsg" aria-live="polite"></span>
@@ -1691,30 +1761,135 @@ function scoutListHtml(limit, compact) {
   const shown = limit ? teams.slice(0, limit) : teams;
   const noteOf = t => t.note || (t.otherNotes[0] ? t.otherNotes[0].by + ': ' + t.otherNotes[0].text : '');
   return '<div class="card-head"><div><h2>Your scouting list</h2>' + (teammates ? '<p class="small muted">Merged with ' + teammates + ' teammate' + (teammates > 1 ? 's' : '') + '. Ranked by average rating.</p>' : '') + '</div>' +
-    (compact ? '' : '<div class="row"><button class="btn btn-primary btn-sm" data-share="share">Share</button><button class="btn btn-ghost btn-sm" data-share="import">Add a teammate\'s list</button><button class="btn btn-ghost btn-sm" id="copyList">Copy list</button><button class="btn btn-ghost btn-sm" id="csvList">CSV</button></div>') + '</div>' +
+    (compact ? '' : '<div class="row"><button class="btn btn-primary btn-sm" data-share="share">Share</button><button class="btn btn-ghost btn-sm" data-share="import">Add a teammate\'s list</button><button class="btn btn-ghost btn-sm" id="sheetList">Open in Google Sheets</button></div>') + '</div>' +
+    (compact ? '' : '<div class="notice info" id="sheetPanel" hidden style="margin-bottom:12px" aria-live="polite"></div>') +
     '<div class="slist">' + shown.map(t => '<div class="srow"><div class="hex sm"><span>' + t.n + '</span></div><div style="min-width:0"><a href="#/scouting/' + t.n + '">' + esc(t.name || 'Team ' + t.n) + '</a>' + (noteOf(t) ? '<div class="note">' + esc(noteOf(t)) + '</div>' : '') + '</div>' +
       ratingPill(t) + '</div>').join('') + '</div>' +
     (limit && teams.length > limit ? '<p class="small" style="margin-top:10px"><a href="#/scouting">See all ' + teams.length + ' teams</a></p>' : '') +
+    (compact ? '' : '<p class="small dim" style="margin-top:12px">Using Excel instead? <button type="button" class="linkbtn" id="csvList">Download a CSV file</button>. Need plain text? <button type="button" class="linkbtn" id="copyList">Copy the list</button>.</p>') +
     '<span class="small ok" id="listMsg" aria-live="polite"></span>';
 }
+
+/* ----- export to Google Sheets: copy a formatted table, then paste it into a new sheet ----- */
+
+// Each team's latest OPR: this season if they've played, otherwise the most recent season with matches.
+async function fetchSheetStats(nums) {
+  const seasons = [CURRENT_SEASON, CURRENT_SEASON - 1, CURRENT_SEASON - 2];
+  const fields = 'number name location { city state country } ' + seasons.map(y => 's' + y + ': quickStats(season: ' + y + ') { tot { value rank } count }').join(' ');
+  const list = nums.map(Number).filter(n => Number.isInteger(n) && n > 0 && n < 1000000);
+  const out = {};
+  for (let i = 0; i < list.length; i += 25) {
+    const chunk = list.slice(i, i + 25);
+    const d = await gql('query Sheet { ' + chunk.map(n => 't' + n + ': teamByNumber(number: ' + n + ') { ' + fields + ' }').join(' ') + ' }', {}, 600000);
+    chunk.forEach(n => {
+      const t = d['t' + n];
+      if (!t) return;
+      rememberName(n, t.name);
+      const y = seasons.find(x => t['s' + x] && t['s' + x].tot);
+      const q = y ? t['s' + y] : null;
+      out[n] = { name: t.name, from: locStr(t.location), season: y || null, opr: q ? q.tot.value : null, rank: q ? q.tot.rank : null, of: q ? q.count : null };
+    });
+  }
+  return out;
+}
+// With teammates' lists merged in, the sheet shows the average, who rated what, and every note with its author.
+function sheetTable(teams, stats) {
+  const merged = teams.some(t => t.others.length || t.otherNotes.length);
+  const head = ['#', 'Team number', 'Team name', 'From', merged ? 'Average rating (out of 10)' : 'Your rating (out of 10)'];
+  if (merged) head.push('Ratings by scout');
+  head.push('Notes', 'OPR (points added per match)', 'Season', 'World rank by OPR');
+  const rows = teams.map((t, i) => {
+    const st = (stats && stats[t.n]) || {};
+    const r = [i + 1, t.n, t.name || st.name || '', st.from || '', merged ? (t.avg ? Math.round(t.avg * 10) / 10 : '') : (t.rating == null ? '' : t.rating)];
+    if (merged) r.push((t.rating ? ['You ' + t.rating] : []).concat(t.others.map(o => o.by + ' ' + o.v)).join(', '));
+    r.push(merged ? (t.note ? ['You: ' + t.note] : []).concat(t.otherNotes.map(o => o.by + ': ' + o.text)) : (t.note ? [t.note] : []),
+      st.opr == null ? '' : Math.round(st.opr * 10) / 10,
+      st.season ? seasonLabel(st.season) : (stats ? 'No matches yet' : ''),
+      st.rank ? fmtInt(st.rank) + ' of ' + fmtInt(st.of) : '');
+    return r;
+  });
+  return { head, rows, ratingCol: 4, merged };
+}
+function sheetFoot(merged) {
+  return [
+    'Ratings are 1 to 10 scores from ' + (merged ? 'you and your teammates' : 'you') + ' on ' + SITE_NAME + '. Higher means a stronger alliance partner.',
+    'OPR (offensive power rating) estimates how many points a team adds to its alliance in a match. Stats from FTC Scout.',
+    'Season is where the OPR comes from: this season, or the team\'s most recent season if it hasn\'t played this one yet. World rank compares every team with stats that season.',
+    'Game names in the Season column, like DECODE™ and INTO THE DEEP℠, are trademarks of FIRST®.',
+    'Exported from ' + SITE_NAME + ', ftc-central.org, on ' + fmtDay(todayStr()) + '.'
+  ];
+}
+// Google Sheets keeps bold headers, colors and line breaks when you paste an HTML table.
+function sheetHtml(title, tbl, foot) {
+  const base = 'border:1px solid #d0d4dc;padding:4px 8px;vertical-align:top;font-family:Arial;font-size:10pt;';
+  const tint = v => (v === '' || v == null ? '' : v >= 8 ? 'background:#D7F5E5;' : v >= 5 ? 'background:#FFF3D1;' : 'background:#E9EEF6;');
+  const cell = (v, i) => (Array.isArray(v)
+    ? '<td style="' + base + '">' + v.map(esc).join('<br>') + '</td>'
+    : '<td style="' + base + (i === tbl.ratingCol ? tint(v) : '') + (typeof v === 'number' ? 'text-align:right;' : '') + '">' + esc(v) + '</td>');
+  const span = ' colspan="' + tbl.head.length + '"';
+  return '<meta charset="utf-8"><table>' +
+    '<tr><td' + span + ' style="font-family:Arial;font-size:14pt;font-weight:bold">' + esc(title) + '</td></tr>' +
+    '<tr>' + tbl.head.map(h => '<th style="' + base + 'background:#FFE29A;color:#1f1f1f;font-weight:bold;text-align:left">' + esc(h) + '</th>').join('') + '</tr>' +
+    tbl.rows.map(r => '<tr>' + r.map(cell).join('') + '</tr>').join('') +
+    '<tr><td' + span + '></td></tr>' +
+    foot.map(f => '<tr><td' + span + ' style="font-family:Arial;font-size:9pt;color:#555555">' + esc(f) + '</td></tr>').join('') +
+    '</table>';
+}
+function sheetText(title, tbl, foot) {
+  const clean = v => (Array.isArray(v) ? v.join(' | ') : String(v)).replace(/[\t\r\n]+/g, ' ');
+  return [title, tbl.head.join('\t')].concat(tbl.rows.map(r => r.map(clean).join('\t')), [''], foot).join('\n');
+}
+async function copyRich(html, text) {
+  if (navigator.clipboard && window.ClipboardItem) {
+    await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([text], { type: 'text/plain' }) })]);
+  } else {
+    await navigator.clipboard.writeText(text);
+  }
+}
+
 function wireScoutList(root) {
-  const copy = $('#copyList', root), csv = $('#csvList', root);
+  const copy = $('#copyList', root), csv = $('#csvList', root), sheet = $('#sheetList', root), panel = $('#sheetPanel', root);
   const teams = scoutedTeams();
   $$('[data-share]', root).forEach(b => b.addEventListener('click', () => openShare(b.dataset.share)));
+  const title = merged => (merged ? 'Scouting list with teammates' : 'My scouting list') + ', ' + fmtDay(todayStr());
+  if (sheet) sheet.addEventListener('click', async () => {
+    sheet.disabled = true;
+    panel.hidden = false;
+    panel.innerHTML = '<span class="loading" style="margin:0"><span class="pulse"></span>Getting the latest stats from FTC Scout…</span>';
+    let stats = null;
+    try { stats = await fetchSheetStats(teams.map(t => t.n)); } catch (e) { stats = null; }
+    const tbl = sheetTable(teams, stats), foot = sheetFoot(tbl.merged);
+    const html = sheetHtml(title(tbl.merged), tbl, foot), text = sheetText(title(tbl.merged), tbl, foot);
+    const open = '<a class="btn btn-primary btn-sm ext" href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener">Open a new Google Sheet</a>';
+    const show = copied => {
+      panel.innerHTML = (copied
+        ? '<b>Your list is copied' + (stats ? ', with stats' : '') + '.</b> Open a new Google Sheet and press Ctrl+V (Cmd+V on a Mac) to paste it.'
+        : '<b>One more click.</b> Your browser wants you to press Copy yourself. Then open a new Google Sheet and press Ctrl+V (Cmd+V on a Mac) to paste it.') +
+        (stats ? '' : ' FTC Scout didn\'t answer, so the sheet has your ratings and notes without OPR.') +
+        '<div class="row" style="margin-top:10px">' + open + '<button class="btn btn-ghost btn-sm" type="button" data-again>' + (copied ? 'Copy again' : 'Copy') + '</button></div>';
+      $('[data-again]', panel).addEventListener('click', async () => {
+        try { await copyRich(html, text); show(true); } catch (e) { show(false); }
+      });
+    };
+    try { await copyRich(html, text); show(true); } catch (e) { show(false); }
+    sheet.disabled = false;
+  });
   if (copy) copy.addEventListener('click', async () => {
     const text = teams.map(t => t.n + (t.name ? ' ' + t.name : '') + ': ' + (t.avg ? fmtAvg(t.avg) + '/10' + (t.count > 1 ? ' (' + t.count + ' scouts)' : '') : 'no rating') +
       [t.note ? 'You: ' + t.note : ''].concat(t.otherNotes.map(o => o.by + ': ' + o.text)).filter(Boolean).map(x => '. ' + x.replace(/\s+/g, ' ')).join('')).join('\n');
     try { await navigator.clipboard.writeText(text); flash($('#listMsg', root), 'Copied ' + teams.length + ' teams'); }
-    catch (e) { flash($('#listMsg', root), 'Your browser blocked copying. Use CSV instead.'); }
+    catch (e) { flash($('#listMsg', root), 'Your browser blocked copying. Try Open in Google Sheets instead.'); }
   });
-  if (csv) csv.addEventListener('click', () => {
-    const cell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-    const rows = [['Team', 'Name', 'Average rating', 'Scouts', 'Your rating', 'Teammate ratings', 'Your notes', 'Teammate notes']].concat(teams.map(t => [
-      t.n, t.name, t.avg ? fmtAvg(t.avg) : '', t.count || '', t.rating || '', t.others.map(o => o.by + ' ' + o.v).join('; '), t.note, t.otherNotes.map(o => o.by + ': ' + o.text).join(' | ')]));
-    const blob = new Blob([rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv' });
+  if (csv) csv.addEventListener('click', async () => {
+    let stats = null;
+    try { stats = await fetchSheetStats(teams.map(t => t.n)); } catch (e) { stats = null; }
+    const tbl = sheetTable(teams, stats);
+    const cell = v => '"' + (Array.isArray(v) ? v.join(' | ') : String(v == null ? '' : v)).replace(/"/g, '""') + '"';
+    const rows = [tbl.head].concat(tbl.rows);
+    const blob = new Blob(['﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'ftcentral-scouting-' + todayStr() + '.csv';
+    a.download = 'ftc-central-scouting-' + todayStr() + '.csv';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1805,7 +1980,7 @@ async function packList(payload) {
 }
 async function unpackList(text) {
   const m = String(text).replace(/\s+/g, '').match(/FTC([0-3])\.([A-Za-z0-9_-]+)/);
-  if (!m) throw new Error('That doesn\'t look like an FTCentral scouting code or link.');
+  if (!m) throw new Error('That doesn\'t look like an FTC Central scouting code or link.');
   const kind = +m[1], deflated = kind === 1 || kind === 2;
   if (deflated && !canDeflate) throw new Error('This browser is too old to read this code. Try Chrome, Firefox or Safari 16.4+.');
   let raw;
@@ -1820,7 +1995,7 @@ async function unpackList(text) {
 }
 // Never trust a pasted code: keep only well-formed team numbers, 1-10 ratings and plain-text notes.
 function cleanPayload(p) {
-  if (!p || p.v !== 1) throw new Error('This code is from a newer version of FTCentral, or isn\'t a scouting code.');
+  if (!p || p.v !== 1) throw new Error('This code is from a newer version of FTC Central, or isn\'t a scouting code.');
   const team = k => /^\d{1,6}$/.test(k);
   const r = {}, t = {}, m = {};
   Object.entries(p.r || {}).forEach(([k, v]) => { if (team(k) && Number.isInteger(v) && v >= 1 && v <= 10) r[k] = v; });
@@ -1842,13 +2017,13 @@ function scoutName() {
   return store.get(K.scoutName, '') || (p ? p.name : '');
 }
 
-// The FTCentral mark, drawn into the middle of the QR code.
+// The FTC Central mark, drawn into the middle of the QR code.
 const MARK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="17" fill="#06727E"/><g fill="#fff" stroke="#fff" stroke-width="3.6" stroke-linecap="round"><path d="M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5" fill="none"/><circle cx="32" cy="15" r="4.6" stroke="none"/><circle cx="46.7" cy="40.5" r="4.6" stroke="none"/><circle cx="17.3" cy="40.5" r="4.6" stroke="none"/></g><circle cx="32" cy="32" r="7.5" fill="#fff"/><circle cx="32" cy="32" r="3" fill="#06727E"/></svg>';
 let markImg = null;
 const loadMark = () => markImg || (markImg = new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = 'data:image/svg+xml,' + encodeURIComponent(MARK_SVG); }));
 
 // The QR holds a link (byte mode) followed by the code (alphanumeric mode), so a phone's own
-// camera app opens FTCentral straight to the import screen. Level Q recovers 25% damage, plenty
+// camera app opens FTC Central straight to the import screen. Level Q recovers 25% damage, plenty
 // for the logo, which covers about 4% of the code. Past version 14 (73x73) phones start to miss it.
 const QR_MAX_MODULES = 73;
 const shareBase = () => location.origin + location.pathname + '#/i/';
@@ -1997,7 +2172,7 @@ async function renderShareOut(dlg) {
   }
   if (token !== out._t) return;
   out.innerHTML = (made ? '<div class="qrwrap"><canvas id="shQr" role="img" aria-label="QR code of your scouting list"></canvas></div>' : (window.qrcode ? '' : '<p class="small muted">The QR code couldn\'t load. The link below still works.</p>')) +
-    (made ? '<p class="small muted center">' + (qrNote ? esc(qrNote) : nTeams + ' team' + (nTeams > 1 ? 's' : '') + ' from ' + esc(name) + '. Scan it with any phone camera to open it in FTCentral.') + ' Turn your screen brightness up if it won\'t pick up.</p>' : (qrNote ? '<p class="small muted">' + esc(qrNote) + '</p>' : '')) +
+    (made ? '<p class="small muted center">' + (qrNote ? esc(qrNote) : nTeams + ' team' + (nTeams > 1 ? 's' : '') + ' from ' + esc(name) + '. Scan it with any phone camera to open it in FTC Central.') + ' Turn your screen brightness up if it won\'t pick up.</p>' : (qrNote ? '<p class="small muted">' + esc(qrNote) + '</p>' : '')) +
     '<label class="field" style="margin-top:14px"><span>Link, for computers or chat</span><textarea id="shCode" rows="3" readonly spellcheck="false">' + esc(link) + '</textarea></label>' +
     '<div class="row"><button type="button" class="btn btn-primary btn-sm" id="shCopy">Copy link</button><span class="small ok" id="shMsg" aria-live="polite"></span></div>';
   if (made) await drawQr($('#shQr', out), made);
@@ -2020,7 +2195,27 @@ async function previewImport(dlg, text) {
   const again = shared[p.d];
   box.innerHTML = '<div class="notice info"><b>' + esc(p.name) + '\'s list</b>, shared ' + esc(fmtDay(p.at)) + ': ' + teams + ' team' + (teams === 1 ? '' : 's') + ', ' +
     Object.keys(p.r).length + ' rated, ' + Object.keys(p.t).length + ' with notes.' + (again ? ' This replaces the list you added from them on ' + esc(fmtDay(again.at)) + '.' : '') +
-    '<div class="row" style="margin-top:10px"><button type="button" class="btn btn-primary btn-sm" id="imAdd">' + (again ? 'Update their list' : 'Add to my list') + '</button></div></div>';
+    '<div class="row" style="margin-top:10px"><button type="button" class="btn btn-primary btn-sm" id="imAdd">' + (again ? 'Update their list' : 'Add to my list') + '</button><button type="button" class="btn btn-ghost btn-sm" id="imMine">This is my own list</button></div>' +
+    '<p class="small muted" style="margin-top:8px">Bringing your own list over from another device or browser? Choose This is my own list and the ratings and notes become yours here.</p></div>';
+  // Your own list from another device (or from the site's old web address, since browsers keep saved data per address).
+  $('#imMine', box).addEventListener('click', () => {
+    const r = store.get(K.ratings, {}), t = store.get(K.notes, {}), names = store.get(K.names, {});
+    let kept = 0;
+    Object.entries(p.r).forEach(([k, v]) => { if (r[k] == null) r[k] = v; else if (r[k] !== v) kept++; });
+    Object.entries(p.t).forEach(([k, v]) => { if (!t[k]) t[k] = v; else if (t[k].indexOf(v) === -1) t[k] = (t[k] + '\n' + v).slice(0, 4000); });
+    Object.entries(p.m).forEach(([k, v]) => { if (!names[k]) names[k] = v; });
+    const ok = store.set(K.ratings, r) && store.set(K.notes, t) && store.set(K.names, names);
+    if (ok) {
+      if (!store.get(K.scoutName, '')) store.set(K.scoutName, p.name);
+      const all = store.get(K.shared, {});
+      if (all[p.d]) { delete all[p.d]; store.set(K.shared, all); }
+    }
+    $('#imCode', dlg).value = '';
+    const nr = Object.keys(p.r).length, nt = Object.keys(p.t).length;
+    box.innerHTML = ok ? '<p class="small ok">Your list is on this device now: ' + nr + ' rating' + (nr === 1 ? '' : 's') + ' and ' + nt + ' note' + (nt === 1 ? '' : 's') + '.' +
+      (kept ? ' For ' + kept + ' team' + (kept === 1 ? '' : 's') + ' you had already rated here, the rating from this device stays.' : '') + '</p>' : '<div class="notice error">Couldn\'t save. Your browser is blocking storage.</div>';
+    renderMates(dlg);
+  });
   $('#imAdd', box).addEventListener('click', () => {
     const all = store.get(K.shared, {});
     all[p.d] = { name: p.name, at: p.at, r: p.r, t: p.t };
@@ -2041,7 +2236,7 @@ function renderMates(dlg) {
   if (!ids.length) { box.innerHTML = ''; return; }
   box.innerHTML = '<h3 class="sub">Teammates in your list</h3>' + ids.map(id => {
     const sc = all[id], n = new Set(Object.keys(sc.r || {}).concat(Object.keys(sc.t || {}))).size;
-    return '<div class="mate-row"><div><b>' + esc(sc.name) + '</b><span class="small muted"> · ' + n + ' teams · ' + esc(fmtDay(sc.at)) + '</span></div><button type="button" class="btn btn-danger btn-sm" data-drop="' + esc(id) + '">Remove</button></div>';
+    return '<div class="mate-row"><div><b>' + esc(sc.name) + '</b><span class="small muted">, ' + n + ' team' + (n === 1 ? '' : 's') + ', shared ' + esc(fmtDay(sc.at)) + '</span></div><button type="button" class="btn btn-danger btn-sm" data-drop="' + esc(id) + '">Remove</button></div>';
   }).join('');
   $$('[data-drop]', box).forEach(b => b.addEventListener('click', () => {
     const cur = store.get(K.shared, {});
@@ -2058,8 +2253,8 @@ function renderEvents(el, args, token) {
   el.innerHTML = `
   <section class="page"><div class="wrap">
     <div class="page-head">
-      <h1>${esc(seasonName(CURRENT_SEASON))} events</h1>
-      <p>Every ${esc(seasonLabel(CURRENT_SEASON))} event FTC Scout has from FIRST, from league meets to championships. New events appear as regions publish them.</p>
+      <h1>${seasonMark(CURRENT_SEASON)} events</h1>
+      <p>Every ${seasonMark(CURRENT_SEASON)} ${esc(SEASONS[CURRENT_SEASON][1])} event that FTC Scout gets from ${MK.FIRST_R}, from league meets to championships. New events appear as regions publish them.</p>
     </div>
     <div class="filters">
       <label>Region ${regionSelect('evRegion', region, true)}</label>
@@ -2086,18 +2281,21 @@ function renderEvents(el, args, token) {
       return;
     }
     let html = '<p class="count">' + fmtInt(shown.length) + ' event' + (shown.length === 1 ? '' : 's') + ' in ' + esc(REGION_NAMES[region]) + '</p>';
-    let month = '';
+    let month = '', streams = 0;
     shown.forEach(e => {
       const d = parseDay(e.start);
       const m = MONTH[d.getMonth()] + ' ' + d.getFullYear();
       if (m !== month) { month = m; html += '<h2 class="month">' + m + '</h2>'; }
       const scout = 'https://ftcscout.org/events/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code);
-      const stream = safeUrl(e.liveStreamURL);
+      const stream = streamLink(e.liveStreamURL);
+      const now = relDay(e.start, e.end) === 'Happening now';
+      if (stream) streams++;
       html += '<div class="erow"><div class="edate">' + esc(e.start === e.end || !e.end ? fmtDay(e.start, false) : fmtRange(e.start, e.end).replace(/, \d{4}$/, '')) + '<small>' + esc(relDay(e.start, e.end)) + '</small></div>' +
-        '<div style="min-width:0"><h3><a href="' + scout + '" target="_blank" rel="noopener">' + esc(e.name) + '</a></h3><div class="emeta"><span class="tag' + (BIG_TYPES.indexOf(e.type) !== -1 ? ' tag-honey' : '') + '">' + esc(EVENT_TYPES[e.type] || e.type) + '</span>' +
+        '<div style="min-width:0"><h3><a href="' + scout + '" target="_blank" rel="noopener">' + ital(esc(e.name)) + '</a></h3><div class="emeta"><span class="tag' + (BIG_TYPES.indexOf(e.type) !== -1 ? ' tag-honey' : '') + '">' + ital(esc(EVENT_TYPES[e.type] || e.type)) + '</span>' +
         (e.remote ? '<span class="tag tag-cyan">Remote</span>' : '') + '<span>' + esc([e.location && e.location.venue, locStr(e.location)].filter(Boolean).join(', ')) + '</span></div></div>' +
-        '<div class="elinks">' + extLink(scout, 'FTC Scout') + extLink('https://ftc-events.firstinspires.org/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code), 'FIRST') + (stream ? extLink(stream, 'Livestream') : '') + '</div></div>';
+        '<div class="elinks">' + (stream ? streamButton(stream, now) : '') + extLink(scout, 'FTC Scout') + extLink('https://ftc-events.firstinspires.org/' + CURRENT_SEASON + '/' + encodeURIComponent(e.code), 'FIRST') + '</div></div>';
     });
+    if (streams) html += '<p class="small dim" style="margin-top:14px">Stream links come from each event\'s organizers through ' + MK.FIRST + '. A stream only plays while its event is running, and some school networks block YouTube and Twitch.</p>';
     list.innerHTML = html;
   };
   const load = () => {
@@ -2133,11 +2331,11 @@ function renderLearning(el, args) {
   <section class="page"><div class="wrap">
     <div class="page-head">
       <h1>Learning hub</h1>
-      <p>The links our team actually uses: the BIOBUZZ rules, programming guides, CAD help and scouting tools.</p>
+      <p>The links our team actually uses for FTC${MK.R}: the BIOBUZZ${MK.TM} rules from ${MK.FIRST_R}, programming guides, CAD help and scouting tools.</p>
     </div>
     <div class="tabbar" role="tablist">${Object.keys(RESOURCES).map(k => '<a href="#/learning/' + k + '" role="tab"' + (k === tab ? ' aria-current="true" aria-selected="true"' : ' aria-selected="false"') + '>' + esc(RESOURCES[k][0]) + '</a>').join('')}</div>
-    <div class="res-list">${RESOURCES[tab][1].map(r => '<a class="resource" href="' + esc(r[2]) + '" target="_blank" rel="noopener"><span style="min-width:0"><h3 class="ext">' + esc(r[0]) + '</h3><p>' + esc(r[1]) + '</p><p class="domain">' + esc(domainOf(r[2])) + '</p></span></a>').join('')}</div>
-    <div class="notice info" style="margin-top:24px">Know a guide that helped your team? <a class="ext" href="https://github.com/Alex-8bit-dot/FTCentral/issues/new" target="_blank" rel="noopener">Suggest it on GitHub</a> and we'll add it.</div>
+    <div class="res-list">${RESOURCES[tab][1].map(r => '<a class="resource" href="' + esc(r[2]) + '" target="_blank" rel="noopener"><span style="min-width:0"><h3 class="ext">' + esc(r[0]) + '</h3><p>' + r[1] + '</p><p class="domain">' + esc(domainOf(r[2])) + '</p></span></a>').join('')}</div>
+    <div class="notice info" style="margin-top:24px">Know a guide that helped your team? Send it to the MantaBots: <a class="ext" href="${CONTACT.instagram}" target="_blank" rel="noopener">DM us on Instagram</a> or email <a href="${CONTACT.mailto(SITE_NAME + ' learning suggestion')}">${CONTACT.email}</a>, and we'll add it.</div>
   </div></section>`;
 }
 

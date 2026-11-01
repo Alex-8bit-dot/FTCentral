@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found | FTC Central</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4EFE3">
+<!--
+  GitHub Pages shows this page for any address that doesn't exist.
+  FTC Central's pages live after a # (ftc-central.org/#/scouting/27318), so a typed address like
+  ftc-central.org/scouting/27318 or ftc-central.org/27318 is sent straight to the right page.
+  The site sits at the root of ftc-central.org, and in /FTCentral/ on github.io, so the script works out which.
+-->
+<script>
+(function () {
+  try { var t = localStorage.getItem('ftcentral.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) { /* storage blocked */ }
+  var segs = location.pathname.split('/').filter(Boolean);
+  var base = /\.github\.io$/i.test(location.hostname) && segs.length ? '/' + segs.shift() + '/' : '/';
+  window.FTC_BASE = base;
+  var first = (segs[0] || '').toLowerCase();
+  var pages = { home: 1, dashboard: 1, scouting: 1, events: 1, learning: 1, i: 1 };
+  var to = null;
+  if (segs.length === 1 && /^\d{1,6}$/.test(first)) to = '#/scouting/' + first;
+  else if (pages[first]) to = '#/' + [first].concat(segs.slice(1)).join('/');
+  if (to) location.replace(base + to);
+})();
+</script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='17' fill='%2306727E'/%3E%3Cg fill='%23fff' stroke='%23fff' stroke-width='3.6' stroke-linecap='round'%3E%3Cpath d='M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5' fill='none'/%3E%3Ccircle cx='32' cy='15' r='4.6' stroke='none'/%3E%3Ccircle cx='46.7' cy='40.5' r='4.6' stroke='none'/%3E%3Ccircle cx='17.3' cy='40.5' r='4.6' stroke='none'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='7.5' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%2306727E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg0:#F4EFE3;--bg1:#FCF8EF;--bg2:#EEE8DA;--bg3:#E3DCCA;
+  --accent:#06727E;--accent-ink:#FDFAF2;--accent-soft:#DCEDE6;
+  --honey-soft:#FCEBC6;--red:#B83A31;
+  --text:#1E2326;--muted:#5D6468;--dim:#8A9094;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 1px 2px rgba(70,55,30,.06),0 8px 28px rgba(70,55,30,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg0:#131619;--bg1:#1A1E22;--bg2:#21262B;--bg3:#2B3137;
+    --accent:#3CC6D0;--accent-ink:#0B1A1C;--accent-soft:#163538;
+    --honey-soft:#33280F;--red:#F0766B;
+    --text:#E6E3DD;--muted:#A3A8AB;--dim:#757B7F;
+    --shadow:0 0 0 1px rgba(255,255,255,.04);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg0:#131619;--bg1:#1A1E22;--bg2:#21262B;--bg3:#2B3137;
+  --accent:#3CC6D0;--accent-ink:#0B1A1C;--accent-soft:#163538;
+  --honey-soft:#33280F;--red:#F0766B;
+  --text:#E6E3DD;--muted:#A3A8AB;--dim:#757B7F;
+  --shadow:0 0 0 1px rgba(255,255,255,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg0);-webkit-text-size-adjust:100%}
+body{min-height:100vh;display:grid;place-items:center;padding:32px 16px;color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(ellipse 60% 50% at 0% 0%,var(--accent-soft),transparent 70%),radial-gradient(ellipse 50% 45% at 100% 100%,var(--honey-soft),transparent 70%)}
+main{width:100%;max-width:520px;background:var(--bg1);border-radius:18px;box-shadow:var(--shadow);padding:36px 34px 30px}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.brand{display:inline-flex;align-items:center;gap:9px;color:var(--text);font-weight:600;font-size:17px;letter-spacing:-.01em;text-decoration:none}
+.brand svg{width:28px;height:28px;color:var(--accent)}
+h1{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.015em;margin-top:30px}
+.lead{color:var(--muted);margin-top:8px}
+form{margin-top:26px}
+label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+.row{display:flex;gap:10px}
+input{flex:1;min-width:0;font:inherit;font-family:var(--mono);color:var(--text);background:var(--bg2);border:1px solid transparent;border-radius:10px;padding:9px 14px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus{border-color:var(--accent);background:var(--bg1);box-shadow:0 0 0 4px var(--accent-soft)}
+input::placeholder{color:var(--dim);font-family:var(--sans)}
+.err{color:var(--red);font-size:13.5px;margin-top:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:500;font-size:14px;padding:9px 18px;border-radius:999px;border:0;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{filter:brightness(1.08)}
+nav{margin-top:26px}
+nav h2{font-size:13.5px;font-weight:600;margin-bottom:8px}
+nav ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+nav a{display:inline-block;color:var(--text);background:var(--bg2);border-radius:999px;padding:6px 14px;font-size:13.5px;font-weight:500;text-decoration:none;transition:background .15s}
+nav a:hover{background:var(--bg3)}
+.fine{margin-top:30px;font-size:12.5px;line-height:1.55;color:var(--muted)}
+sup{font-size:.6em;line-height:0;vertical-align:super;margin-left:.04em;font-style:normal}
+@media (max-width:480px){main{padding:28px 22px 24px}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<main>
+  <a class="brand" href="/#/home" data-to="#/home" aria-label="FTC Central home">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="17" fill="currentColor"/><g fill="var(--bg1)" stroke="var(--bg1)" stroke-width="3.6" stroke-linecap="round"><path d="M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5" fill="none"/><circle cx="32" cy="15" r="4.6" stroke="none"/><circle cx="46.7" cy="40.5" r="4.6" stroke="none"/><circle cx="17.3" cy="40.5" r="4.6" stroke="none"/></g><circle cx="32" cy="32" r="7.5" fill="var(--bg1)"/><circle cx="32" cy="32" r="3" fill="currentColor"/></svg>
+    <span>FTC Central</span>
+  </a>
+  <h1>There's no page at this address</h1>
+  <p class="lead">Check the address for a typo, or go straight to what you need.</p>
+  <form id="look" novalidate>
+    <label for="team">Look up an FTC<sup>®</sup> team by number</label>
+    <div class="row">
+      <input type="text" id="team" name="team" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="Team number, like 27318" aria-describedby="err">
+      <button class="btn btn-primary" type="submit">Look up</button>
+    </div>
+    <p class="err" id="err" role="alert" hidden>Enter a team number, like 27318.</p>
+  </form>
+  <nav aria-labelledby="pagesTitle">
+    <h2 id="pagesTitle">Or open a page</h2>
+    <ul>
+      <li><a href="/#/home" data-to="#/home">Home</a></li>
+      <li><a href="/#/dashboard" data-to="#/dashboard">Dashboard</a></li>
+      <li><a href="/#/scouting" data-to="#/scouting">Scouting</a></li>
+      <li><a href="/#/events" data-to="#/events">Events</a></li>
+      <li><a href="/#/learning" data-to="#/learning">Learning</a></li>
+    </ul>
+  </nav>
+  <p class="fine"><i>FIRST</i><sup>®</sup> and FTC<sup>®</sup> are trademarks of For Inspiration and Recognition of Science and Technology (<i>FIRST</i>), which is not overseeing, involved with, or responsible for this activity, product, or service. FTC Central is a student project by the MantaBots, FTC Team 27318.</p>
+</main>
+<script>
+(function () {
+  var base = window.FTC_BASE || '/';
+  var links = document.querySelectorAll('[data-to]');
+  for (var i = 0; i < links.length; i++) links[i].href = base + links[i].getAttribute('data-to');
+  var dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  if (dark) document.querySelector('meta[name="theme-color"]').content = '#131619';
+  var form = document.getElementById('look'), input = document.getElementById('team'), err = document.getElementById('err');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = input.value.replace(/\s+/g, '');
+    if (/^\d{1,6}$/.test(v)) { location.href = base + '#/scouting/' + v; return; }
+    err.hidden = false;
+    input.setAttribute('aria-invalid', 'true');
+    input.focus();
+  });
+  input.addEventListener('input', function () { if (!err.hidden) { err.hidden = true; input.removeAttribute('aria-invalid'); } });
+})();
+</script>
+</body>
+</html>
