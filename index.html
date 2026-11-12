@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FTC Central has a new address</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4EFE3">
+<!--
+  This page lives at FTC Central's OLD address, alex-8bit-dot.github.io/FTCentral, after the code moved
+  to the MantaBots GitHub organization. It sends everyone to the new address and keeps their place:
+  old #/ links, typed paths like /FTCentral/scouting/27318, and teammates' share links all still work.
+
+  Browsers keep saved data per web address, so a scout's ratings and notes are still stored here.
+  If there is a list that hasn't moved yet, the page offers to carry it over as an FTC Central share
+  code, which the new site opens with "This is my own list".
+
+  NEW_SITE    = where FTC Central lives now.
+  CARRY_LISTS = false while NEW_SITE is only a temporary address, so lists aren't moved twice.
+  The same file is used as 404.html, so any old path lands here too.
+-->
+<script>
+var NEW_SITE = 'https://mantabots27318.github.io/FTCentral/';
+var CARRY_LISTS = false; // turn on once ftc-central.org works, with NEW_SITE set to it
+(function () {
+  var get = function (k, f) { try { var v = localStorage.getItem(k); return v == null ? f : JSON.parse(v); } catch (e) { return f; } };
+  var theme = get('ftcentral.theme', null);
+  if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+
+  // Where they were headed: an old #/ link, or a typed path such as /FTCentral/scouting/27318 or /FTCentral/27318.
+  var route = '#/home';
+  if (/^#\/./.test(location.hash)) route = location.hash;
+  else {
+    var segs = location.pathname.split('/').filter(Boolean);
+    if (/\.github\.io$/i.test(location.hostname) && segs.length) segs.shift();
+    var first = (segs[0] || '').toLowerCase();
+    var pages = { home: 1, dashboard: 1, scouting: 1, events: 1, learning: 1, i: 1 };
+    if (segs.length === 1 && /^\d{1,6}$/.test(first)) route = '#/scouting/' + first;
+    else if (pages[first]) route = '#/' + [first].concat(segs.slice(1)).join('/');
+  }
+  window.FTC_MOVE = { route: route };
+
+  // A teammate's shared list opens on the new site straight away.
+  if (/^#\/i\//.test(route) || !CARRY_LISTS) { location.replace(NEW_SITE + route); return; }
+
+  // Is there a list saved here that hasn't been carried over yet? (?move in the address asks again.)
+  var r = get('ftcRatings', {}) || {}, t = get('ftcentral.notes', {}) || {};
+  var nr = Object.keys(r).length, nt = Object.keys(t).length;
+  var moved = get('ftcentral.movedTo', null);
+  var again = /[?&]move\b/.test(location.search);
+  if ((nr || nt) && (again || !(moved && moved.site === NEW_SITE))) { window.FTC_MOVE.counts = { r: nr, t: nt }; return; }
+  location.replace(NEW_SITE + route);
+})();
+</script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='17' fill='%2306727E'/%3E%3Cg fill='%23fff' stroke='%23fff' stroke-width='3.6' stroke-linecap='round'%3E%3Cpath d='M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5' fill='none'/%3E%3Ccircle cx='32' cy='15' r='4.6' stroke='none'/%3E%3Ccircle cx='46.7' cy='40.5' r='4.6' stroke='none'/%3E%3Ccircle cx='17.3' cy='40.5' r='4.6' stroke='none'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='7.5' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%2306727E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg0:#F4EFE3;--bg1:#FCF8EF;--bg2:#EEE8DA;--bg3:#E3DCCA;
+  --accent:#06727E;--accent-ink:#FDFAF2;--accent-soft:#DCEDE6;
+  --honey-soft:#FCEBC6;
+  --text:#1E2326;--muted:#5D6468;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --shadow:0 1px 2px rgba(70,55,30,.06),0 8px 28px rgba(70,55,30,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg0:#131619;--bg1:#1A1E22;--bg2:#21262B;--bg3:#2B3137;
+    --accent:#3CC6D0;--accent-ink:#0B1A1C;--accent-soft:#163538;
+    --honey-soft:#33280F;
+    --text:#E6E3DD;--muted:#A3A8AB;
+    --shadow:0 0 0 1px rgba(255,255,255,.04);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg0:#131619;--bg1:#1A1E22;--bg2:#21262B;--bg3:#2B3137;
+  --accent:#3CC6D0;--accent-ink:#0B1A1C;--accent-soft:#163538;
+  --honey-soft:#33280F;
+  --text:#E6E3DD;--muted:#A3A8AB;
+  --shadow:0 0 0 1px rgba(255,255,255,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg0);-webkit-text-size-adjust:100%}
+body{min-height:100vh;display:grid;place-items:center;padding:32px 16px;color:var(--text);font-family:var(--sans);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(ellipse 60% 50% at 0% 0%,var(--accent-soft),transparent 70%),radial-gradient(ellipse 50% 45% at 100% 100%,var(--honey-soft),transparent 70%)}
+main{width:100%;max-width:520px;background:var(--bg1);border-radius:18px;box-shadow:var(--shadow);padding:36px 34px 30px}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.brand{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:17px;letter-spacing:-.01em}
+.brand svg{width:28px;height:28px;color:var(--accent)}
+h1{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.015em;margin-top:30px}
+.lead{color:var(--muted);margin-top:10px}
+.lead b{color:var(--text);font-weight:600}
+ol{margin:22px 0 0 0;padding-left:22px}
+ol li{margin-top:4px;padding-left:4px}
+ol b{font-weight:600}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:500;font-size:15px;padding:10px 22px;border-radius:999px;border:0;cursor:pointer;white-space:nowrap;text-decoration:none;background:var(--accent);color:var(--accent-ink)}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.7;cursor:progress}
+.skip{font-size:14.5px}
+.note{margin-top:22px;font-size:14px;color:var(--muted)}
+.fine{margin-top:26px;font-size:12.5px;line-height:1.55;color:var(--muted)}
+sup{font-size:.6em;line-height:0;vertical-align:super;margin-left:.04em;font-style:normal}
+@media (max-width:480px){main{padding:28px 22px 24px}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="17" fill="currentColor"/><g fill="var(--bg1)" stroke="var(--bg1)" stroke-width="3.6" stroke-linecap="round"><path d="M32 32V15M32 32 46.7 40.5M32 32 17.3 40.5" fill="none"/><circle cx="32" cy="15" r="4.6" stroke="none"/><circle cx="46.7" cy="40.5" r="4.6" stroke="none"/><circle cx="17.3" cy="40.5" r="4.6" stroke="none"/></g><circle cx="32" cy="32" r="7.5" fill="var(--bg1)"/><circle cx="32" cy="32" r="3" fill="currentColor"/></svg>
+    <span>FTC Central</span>
+  </div>
+  <h1>FTC Central has a new address</h1>
+  <p class="lead">It's at <a id="newLink" href="https://ftc-central.org/">ftc-central.org</a> now. Your scouting list is still saved in this browser at the old address<span id="countWrap" hidden>: <b id="count"></b></span>.</p>
+  <noscript><p class="lead">Open <a href="https://ftc-central.org/">ftc-central.org</a> to keep using FTC Central.</p></noscript>
+  <ol id="steps">
+    <li>Tap <b>Bring my list</b>.</li>
+    <li>On the next screen, tap <b>This is my own list</b>.</li>
+  </ol>
+  <div class="actions">
+    <button class="btn" type="button" id="bring">Bring my list</button>
+    <a class="skip" id="skip" href="https://ftc-central.org/">Go without my list</a>
+  </div>
+  <p class="note">Your profile (your name and team) doesn't come along. Setting it up again on the new site takes about 30 seconds.</p>
+  <p class="fine"><i>FIRST</i><sup>®</sup> and FTC<sup>®</sup> are trademarks of For Inspiration and Recognition of Science and Technology (<i>FIRST</i>), which is not overseeing, involved with, or responsible for this activity, product, or service. FTC Central is a student project by the MantaBots, FTC Team 27318.</p>
+</main>
+<script>
+(function () {
+  var move = window.FTC_MOVE || { route: '#/home' };
+  var get = function (k, f) { try { var v = localStorage.getItem(k); return v == null ? f : JSON.parse(v); } catch (e) { return f; } };
+  var shown = NEW_SITE.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  var link = document.getElementById('newLink');
+  link.href = NEW_SITE + move.route; link.textContent = shown;
+  document.getElementById('skip').href = NEW_SITE + move.route;
+  if (move.counts) {
+    var parts = [];
+    if (move.counts.r) parts.push(move.counts.r + (move.counts.r === 1 ? ' rating' : ' ratings'));
+    if (move.counts.t) parts.push(move.counts.t + (move.counts.t === 1 ? ' note' : ' notes'));
+    document.getElementById('count').textContent = parts.join(' and ');
+    document.getElementById('countWrap').hidden = false;
+  }
+  if (document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.querySelector('meta[name="theme-color"]').content = '#131619';
+  }
+
+  // The same share-code format FTC Central uses ("FTC2." + base32 of the deflated compact list),
+  // so the new site can read it with its normal "Add a teammate's list" screen.
+  var B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  function b32(bytes) {
+    var bits = 0, val = 0, out = '';
+    for (var i = 0; i < bytes.length; i++) { val = ((val << 8) | bytes[i]) & 0xffff; bits += 8; while (bits >= 5) { out += B32[(val >>> (bits - 5)) & 31]; bits -= 5; } }
+    if (bits > 0) out += B32[(val << (5 - bits)) & 31];
+    return out;
+  }
+  var GS = '\x1d', RS = '\x1e', US = '\x1f';
+  var clip = function (v) { return String(v).replace(/[\x00-\x1f]/g, ' '); };
+  var recs = function (obj) { return Object.keys(obj).map(function (k) { return k + US + clip(obj[k]); }).join(RS); };
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var today = function () { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+  async function pack(compact) {
+    var bytes = new TextEncoder().encode(compact);
+    try {
+      var stream = new CompressionStream('deflate-raw');
+      var deflated = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+      return 'FTC2.' + b32(deflated);
+    } catch (e) { return 'FTC3.' + b32(bytes); }
+  }
+
+  document.getElementById('bring').addEventListener('click', async function () {
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Bringing your list…';
+    var r = get('ftcRatings', {}) || {}, t = get('ftcentral.notes', {}) || {}, names = get('ftcentral.teamNames', {}) || {};
+    var m = {};
+    Object.keys(r).concat(Object.keys(t)).forEach(function (k) { if (names[k]) m[k] = names[k]; });
+    var profile = get('ftcentral.profile', null);
+    var by = get('ftcentral.scoutName', '') || (profile && profile.name) || 'My list';
+    var device = get('ftcentral.device', null);
+    if (!/^[0-9a-f]{8,12}$/.test(device || '')) device = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(6)), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join('');
+    var code = await pack(['1', device, clip(by), today(), recs(r), recs(t), recs(m)].join(GS));
+    try { localStorage.setItem('ftcentral.movedTo', JSON.stringify({ site: NEW_SITE, at: today() })); } catch (e) { /* storage blocked */ }
+    location.href = NEW_SITE + '#/i/' + code;
+  });
+})();
+</script>
+</body>
+</html>
