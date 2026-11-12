@@ -20,8 +20,8 @@
   The same file is used as 404.html, so any old path lands here too.
 -->
 <script>
-var NEW_SITE = 'https://mantabots27318.github.io/FTCentral/';
-var CARRY_LISTS = false; // turn on once ftc-central.org works, with NEW_SITE set to it
+var NEW_SITE = 'https://ftccentral.org/';
+var CARRY_LISTS = true;
 (function () {
   var get = function (k, f) { try { var v = localStorage.getItem(k); return v == null ? f : JSON.parse(v); } catch (e) { return f; } };
   var theme = get('ftcentral.theme', null);
@@ -117,15 +117,15 @@ sup{font-size:.6em;line-height:0;vertical-align:super;margin-left:.04em;font-sty
     <span>FTC Central</span>
   </div>
   <h1>FTC Central has a new address</h1>
-  <p class="lead">It's at <a id="newLink" href="https://ftc-central.org/">ftc-central.org</a> now. Your scouting list is still saved in this browser at the old address<span id="countWrap" hidden>: <b id="count"></b></span>.</p>
-  <noscript><p class="lead">Open <a href="https://ftc-central.org/">ftc-central.org</a> to keep using FTC Central.</p></noscript>
+  <p class="lead">It's at <a id="newLink" href="https://ftccentral.org/">ftccentral.org</a> now. Your scouting list is still saved in this browser at the old address<span id="countWrap" hidden>: <b id="count"></b></span>.</p>
+  <noscript><p class="lead">Open <a href="https://ftccentral.org/">ftccentral.org</a> to keep using FTC Central.</p></noscript>
   <ol id="steps">
     <li>Tap <b>Bring my list</b>.</li>
     <li>On the next screen, tap <b>This is my own list</b>.</li>
   </ol>
   <div class="actions">
     <button class="btn" type="button" id="bring">Bring my list</button>
-    <a class="skip" id="skip" href="https://ftc-central.org/">Go without my list</a>
+    <a class="skip" id="skip" href="https://ftccentral.org/">Go without my list</a>
   </div>
   <p class="note">Your profile (your name and team) doesn't come along. Setting it up again on the new site takes about 30 seconds.</p>
   <p class="fine"><i>FIRST</i><sup>®</sup> and FTC<sup>®</sup> are trademarks of For Inspiration and Recognition of Science and Technology (<i>FIRST</i>), which is not overseeing, involved with, or responsible for this activity, product, or service. FTC Central is a student project by the MantaBots, FTC Team 27318.</p>
